@@ -27,6 +27,10 @@ message("${OPENGL_gl_LIBRARY}")
 include_directories(${OPENGL_INCLUDE_DIR})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_gl_LIBRARY})
 
+find_package (GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
+link_libraries(${GLEW_LIBRARIES})
+
 include (CheckFunctionExists)
 check_function_exists(printf HAVE_LOG)
 

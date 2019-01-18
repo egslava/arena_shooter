@@ -71,5 +71,32 @@ https://github.com/egslava/blood-pressure-insights/
 Скоро начну заниматься графикой.
 ```
 
-21:50. Решил закоммитить первые изменения:
-[+] Skeletons: spinx docs, CMake, SDL, OpenGL 4.2
+21:50-22:10 (0:20). Решил закоммитить первые изменения:
+[+] Skeletons: spinx docs, CMake (SDL, OpenGL 4.2, Qt, Installer, System Introspection, Configurable files, custom build steps)
+
+22:10 - разрулил сраные конфликты (fatal: refusing to merge unrelated histories) c помощью --allow-unrelated-histories). Начинаю создание VBO и вывода треугольника. Прохожу вот этот тутор:
+http://antongerdelan.net/opengl/hellotriangle.html
+
+По-хорошему, код надо бы отрефакторить, т.к. он не безопасен в плане исключений. Но, пока, уверен, что рефактор будет ещё 100 раз, а на утечку ресурсов, в случае полного краша приложения мне пока всё равно.
+
+22:14, ну, блядь, нет функции glGenBuffer и пиздец. И что тут сделаешь? Начинаю опять раскуривать CMake.
+22:16, бля, нет, это не ошибка автокомплита, это рили отсутствие ФУНКЦИИ БЛЯДЬ ПОЧЕМУ??? :( Почему glReadBuffer есть, а glGenBuffer, нЕТ БЛЯДЬ НЕТ НЕТ НЕТ НЕТ Нет!!!!!!
+
+Нашёл этот тред. Он длинный и вселяет надежду.
+https://www.opengl.org/discussion_boards/showthread.php/172481-glGenBuffer-was-not-declared
+
+Тем не менее, нет. Нужен был GLEW:
+1. Установил GLEW: https://www.reddit.com/r/learnprogramming/comments/51u1bg/how_to_install_glew_on_ubuntu/d7ezyxq/
+2. Подключил GLEW: https://stackoverflow.com/a/27487567/1444191
+
+Продолжаю инкапсулировать API из тутора в объектики
+
+
+Допилил треугольник!
+
+18/01/2019
+Планы:
+1. Коммит
+2. Цвет.
+3. Текстура
+4. Коммит

@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include "Config.h"
 
+#define GL_GLEXT_PROTOTYPES
+#define GL3_PROTOTYPES
+
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "MathFunctions/mysqrt.h"
@@ -11,25 +18,277 @@
 #endif
 
 //#include <glvnd/>
-#include <GL/gl.h>
+
+
+#include <string>
 #include <memory>
 #include <exception>
+#include <vector>
 
-struct MyException {
-    const char *description;
-    MyException(const char *description):description(description){}
+struct MyException : public std::exception{
+    std::string _description;
+//    MyException(const char *description):description(description){}
+    MyException(std::string description):_description(description) {}
 
-    operator const char *() const {
-        return description;
+//    virtual operator const char *() const {
+//        return description;
+//    }
+    virtual const char* what() const noexcept{
+        return _description.c_str();
     }
-    const char* what() const noexcept{
-        return this->description;
-    }
+
+//    ~MyException(){}
+};
+
+struct MyIllegalStateException : public MyException {
+    MyIllegalStateException (const char *description): MyException (description){}
 };
 
 struct MySDLException : public MyException {
     MySDLException(const char *description):MyException(description){}
 };
+
+struct MyGlException: public MyException {
+    MyGlException(const char *description):MyException(description){}
+};
+
+struct MyShaderException: public MyGlException {
+    MyShaderException(const char *description):MyGlException(description){}
+};
+
+
+class Shader {
+public:
+    enum class Type { VERTEX_SHADER=GL_VERTEX_SHADER, FRAGMENT_SHADER=GL_FRAGMENT_SHADER};
+private:
+    friend class Program;
+
+    uint _shader = 0;
+    Type _type;
+public:
+
+    Shader(){}
+    Shader(const Shader &that) = delete;
+    Shader(Shader &&shader){
+        _shader = shader._shader;
+        _type = shader._type;
+        shader._shader = 0;
+    }
+
+    void delete_(){
+        #ifndef NDEBUG
+        if (_shader == 0){
+            throw MyIllegalStateException("An attempt to delete Shader without calling glCreateShader first.");
+        }
+        #endif
+
+        glDeleteShader(_shader);
+        _shader = 0;
+    }
+
+    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
+    void _delete(){
+        if(_shader != 0) delete_();
+    }
+
+    void compile(Type type, const char *source){
+        if (_shader != 0) delete_();
+        _shader = glCreateShader( (GLenum)type);
+//        typedef void (GLAPIENTRY * PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const GLchar *const* string, const GLint* length);
+
+        glShaderSource(_shader, 1, &source, nullptr);
+        glCompileShader(_shader);
+
+        int success;
+        char compilation_errors[512];
+        // typedef void (GLAPIENTRY * PFNGLGETSHADERINFOLOGPROC) (GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
+        // typedef void (GLAPIENTRY * PFNGLGETSHADERIVPROC) (GLuint shader, GLenum pname, GLint* param);
+        glGetShaderiv(_shader, GL_COMPILE_STATUS, &success);
+        if (!success){
+            glGetShaderInfoLog(_shader, 512, nullptr, compilation_errors);
+            throw MyShaderException(compilation_errors);
+        }
+    }
+
+//    void bind(){
+//        glBindBuffer(GL_ARRAY_BUFFER, _shader);
+//    }
+
+    ~Shader(){
+        _delete();
+    }
+};
+
+
+class Program {
+    uint _program = 0;
+    std::vector<Shader> _shaders;   // will be removed automatically, after the destructor is called
+public:
+    Program(){}
+    Program(const Program &that) = delete;
+    Program(Program &&that){
+        _program = that._program;
+        _shaders = std::move(that._shaders);
+        that._program = 0;
+    }
+
+    void delete_(){
+        #ifndef NDEBUG
+        if (_program == 0){
+            throw MyIllegalStateException("An attempt to delete a Program without calling glCreateProgram() first.");
+        }
+        #endif
+
+        _shaders.clear();  // call the destructors and remove all the shaders
+
+        glDeleteProgram(_program);
+        _program = 0;
+    }
+
+    /** Safe Program removal. Should be used only internally. A class user should just use destructor. */
+    void _delete(){
+        if(_program != 0) delete_();
+    }
+
+    void link(Shader &&vertex, Shader &&fragment){
+        if (_program != 0) delete_();
+
+        _shaders.push_back(std::move(vertex));
+        _shaders.push_back(std::move(fragment));
+
+        _program = glCreateProgram();
+        if (_program == 0){
+            throw MyGlException("Can't create a Program ");
+        }
+
+        for (const auto & shader : _shaders){
+            glAttachShader(_program, shader._shader);
+        }
+        glLinkProgram(_program);
+
+        int success;
+        char info_log[512];
+        glGetProgramiv(_program, GL_LINK_STATUS, &success);
+        if(!success) {
+            glGetProgramInfoLog(_program, 512, NULL, info_log);
+            throw MyShaderException(info_log);
+        }
+    }
+
+    void use(){
+        glUseProgram(_program);
+    }
+
+//    void bind(){
+//        glBindBuffer(GL_ARRAY_BUFFER, _shader);
+//    }
+
+    ~Program(){
+        _delete();
+    }
+};
+
+
+class VBO {
+    GLuint _vbo = 0;
+public:
+    VBO(){}
+
+    VBO(const VBO &vbo) = delete;
+    VBO(VBO &&that){
+        _vbo = that._vbo;
+        that._vbo = 0;
+    }
+
+    void delete_(){
+        #ifndef NDEBUG
+        if (_vbo == 0){
+            throw MyIllegalStateException("An attempt to delete VBO without Gen it first has been detected.");
+        }
+        #endif
+
+        glDeleteBuffers(1, &_vbo);
+        _vbo = 0;
+    }
+
+    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
+    void _delete(){
+        if(_vbo != 0) delete_();
+    }
+
+    void data(const std::vector<float> data){
+        if (_vbo != 0) delete_();
+        glGenBuffers(1, &_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+    }
+
+    void bind(){
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    }
+
+    ~VBO(){
+        _delete();
+    }
+};
+
+
+class VAO {
+    GLuint _vao = 0;
+    std::vector<VBO> _vbos;
+public:
+    VAO(){}
+    VAO(const VAO &that);
+    VAO(VAO &&that){
+        _vao = that._vao;
+        _vbos = std::move(that._vbos);
+        that._vao = 0;
+    }
+
+    void delete_(){
+        #ifndef NDEBUG
+        if (_vao == 0){
+            throw MyIllegalStateException("Deletion VAO without a call to glGenVertexArrays.");
+        }
+        #endif
+
+        _vbos.clear();
+        glDeleteVertexArrays(1, &_vao);
+        _vao = 0;
+    }
+
+    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
+    void _delete(){
+        if(_vao != 0) delete_();
+    }
+
+    void data(VBO  &&data){
+        if (_vao != 0) delete_();
+        glGenVertexArrays(1, &_vao);
+        _vbos.push_back(std::move(data));
+        glBindVertexArray(_vao);
+
+        int counter = 0;
+        for (auto &vbo : _vbos){
+            vbo.bind();
+            glVertexAttribPointer(counter, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+//            typedef void (GLAPIENTRY * PFNGLENABLEVERTEXARRAYATTRIBPROC) (GLuint vaobj, GLuint index);
+            glEnableVertexAttribArray(counter);
+            counter ++;
+        }
+//        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data, GL_STATIC_DRAW);
+    }
+
+    void bind(){
+        glBindVertexArray(_vao);
+    }
+
+    ~VAO(){
+        _delete();
+    }
+};
+
 
 #define SDL_SAFE(code) do { \
     int result = code;\
@@ -51,6 +310,30 @@ class MySDLApp {
         printf("The OpenGL version available is: %d.%d\n", major_version, minor_version);
     }
 public:
+    const char *vertex_shader_code = ""
+    "#version 330 core 										\n"
+    "layout (location = 0) in vec3 aPos;					\n"
+    "void main() 											\n"
+    "{ 														\n"
+    "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);	\n"
+    "}														\n";
+
+    const char *fragment_shader_code = ""
+    "#version 330 core                                      \n"
+    "out vec4 FragColor;                                    \n"
+    "                                                       \n"
+    "void main()                                            \n"
+    "{                                                      \n"
+    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);          \n"
+    "}                                                      \n";
+
+    Program program;
+    Shader vertex_shader;
+    Shader fragment_shader;
+
+    VAO vao;
+    VBO vbo_positions;
+
     MySDLApp(){
         if (SDL_Init(SDL_INIT_VIDEO) < 0){
             throw MySDLException("Can not init SDL");
@@ -61,7 +344,7 @@ public:
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24));
+//        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24));
 
 //        mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 //                      512, 512, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
@@ -80,27 +363,51 @@ public:
         }
         SDL_SAFE(SDL_GL_SetSwapInterval(1));
 
+        glewInit();
+
+        glViewport(0, 0, 640, 480);
         _print_sys_info();
 
 //        if (_surface = )
+        std::vector<float> points {
+           0.0f,  0.5f,  0.0f,
+           0.5f, -0.5f,  0.0f,
+          -0.5f, -0.5f,  0.0f
+        };
+
+        vbo_positions.data(points);
+        vao.data( std::move(vbo_positions) );
+
+        vertex_shader.compile(Shader::Type::VERTEX_SHADER, vertex_shader_code);
+        fragment_shader.compile(Shader::Type::FRAGMENT_SHADER, fragment_shader_code);
+
+        program.link(std::move(vertex_shader), std::move(fragment_shader));
+//        program.link( {std::move(vertex_shader), std::move(fragment_shader)} );
     }
 
     void render(){
-        glClearColor(0,0,0,0);
+
 
 
 //        glClear(GL_COLOR_BUFFER_BIT);
+
         bool quit = false;
         SDL_Event event;
         while(!quit){
 
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            program.use();
+            vao.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
 //          Display();
-          SDL_GL_SwapWindow(_window);
+            SDL_GL_SwapWindow(_window);
 
           while( SDL_PollEvent( &event ) ){
               if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE){
                   return;
               }
+
             if( event.type == SDL_QUIT ){
                   quit = true;
             }
@@ -124,6 +431,8 @@ public:
 //    }
 //}
 
+#include <iostream>
+
 int main (int argc, const char **argv){
 	printf("Hello world! Version is: %i.%i \n", Arena_VERSION_MAJOR, Arena_VERSION_MINOR);
 
@@ -138,11 +447,10 @@ int main (int argc, const char **argv){
     try {
         MySDLApp().render();
     } catch (MyException &e) {
-
-        fprintf(stderr, e.what());
+        std::cout << e.what() << std::endl;
+        throw;
         return 1;
     }
-
 
 
 
