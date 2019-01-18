@@ -191,13 +191,17 @@ public:
 
 class VBO {
     GLuint _vbo = 0;
-public:
-    VBO(){}
 
-    VBO(const VBO &vbo) = delete;
-    VBO(VBO &&that){
-        _vbo = that._vbo;
-        that._vbo = 0;
+    void _gen(){
+        if (_vbo != 0) delete_();
+        fprintf(stdout, "glGenBuffers()\n");
+        fflush(stdout);
+        glGenBuffers(1, &_vbo);
+    }
+
+    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
+    void _delete(){
+        if(_vbo != 0) delete_();
     }
 
     void delete_(){
@@ -208,19 +212,26 @@ public:
         #endif
 
         glDeleteBuffers(1, &_vbo);
+        fprintf(stdout, "glDeleteBuffers()\n");
+        fflush(stdout);
         _vbo = 0;
     }
+public:
+    VBO(){}
 
-    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
-    void _delete(){
-        if(_vbo != 0) delete_();
+    VBO(const VBO &vbo) = delete;
+    VBO(VBO &&that){
+        _vbo = that._vbo;
+        that._vbo = 0;
     }
 
-    void data(const std::vector<float> data){
-        if (_vbo != 0) delete_();
-        glGenBuffers(1, &_vbo);
+    VBO&& data(const std::vector<float> data){
+        if (_vbo == 0) _gen();
+
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_DYNAMIC_DRAW);
+
+        return (VBO&&)*this;
     }
 
     void bind(){
@@ -236,13 +247,10 @@ public:
 class VAO {
     GLuint _vao = 0;
     std::vector<VBO> _vbos;
-public:
-    VAO(){}
-    VAO(const VAO &that);
-    VAO(VAO &&that){
-        _vao = that._vao;
-        _vbos = std::move(that._vbos);
-        that._vao = 0;
+
+    void _gen(){
+        if (_vao != 0) delete_();
+        glGenVertexArrays(1, &_vao);
     }
 
     void delete_(){
@@ -257,14 +265,25 @@ public:
         _vao = 0;
     }
 
-    /** Safe VBO removal. Should be used only internally. A class user should just use destructor. */
+    /** Safe VAO removal. Should be used only internally. A class user should just use destructor. */
     void _delete(){
         if(_vao != 0) delete_();
     }
 
-    void data(VBO  &&data){
-        if (_vao != 0) delete_();
-        glGenVertexArrays(1, &_vao);
+public:
+    VAO(){}
+    VAO(const VAO &that)=delete;
+    VAO(VAO &&that){
+        _vao = that._vao;
+        _vbos = std::move(that._vbos);
+        that._vao = 0;
+    }
+
+    VAO&& data(VBO  &&data){
+//        if (_vao != 0) delete_();
+//        glGenVertexArrays(1, &_vao);
+        if (_vao == 0) _gen();
+        _vbos.clear();
         _vbos.push_back(std::move(data));
         glBindVertexArray(_vao);
 
@@ -277,6 +296,8 @@ public:
             glEnableVertexAttribArray(counter);
             counter ++;
         }
+
+        return (VAO&&)*this;
 //        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data, GL_STATIC_DRAW);
     }
 
@@ -328,10 +349,9 @@ public:
     "}                                                      \n";
 
     Program program;
-    Shader vertex_shader;
-    Shader fragment_shader;
 
-    VAO vao;
+    std::vector<VAO> vaos;
+    int i_active_vao = 0;
     VBO vbo_positions;
 
     MySDLApp(){
@@ -365,54 +385,64 @@ public:
 
         glewInit();
 
-        glViewport(0, 0, 640, 480);
+//        glViewport(0, 0, 640, 480);
         _print_sys_info();
 
 //        if (_surface = )
-        std::vector<float> points {
+
+        std::vector<float> _triangle_points {
            0.0f,  0.5f,  0.0f,
            0.5f, -0.5f,  0.0f,
           -0.5f, -0.5f,  0.0f
         };
 
-        vbo_positions.data(points);
-        vao.data( std::move(vbo_positions) );
+        std::vector<float> _square_points {
+            -0.5f,  -0.5f,  0.0f,
+            -0.5f,   0.5f,  0.0f,
+             0.5f,   0.5f,  0.0f,
 
+            -0.5f,  -0.5f,  0.0f,
+            0.5f,   0.5f,  0.0f,
+            0.5f, -0.5f,  0.0f,
+        };
+
+        vaos.push_back(VAO().data(VBO().data(_triangle_points)));
+        vaos.push_back(VAO().data(VBO().data(_square_points)));
+
+        Shader vertex_shader, fragment_shader;
         vertex_shader.compile(Shader::Type::VERTEX_SHADER, vertex_shader_code);
         fragment_shader.compile(Shader::Type::FRAGMENT_SHADER, fragment_shader_code);
 
         program.link(std::move(vertex_shader), std::move(fragment_shader));
-//        program.link( {std::move(vertex_shader), std::move(fragment_shader)} );
     }
 
     void render(){
-
-
-
-//        glClear(GL_COLOR_BUFFER_BIT);
-
         bool quit = false;
         SDL_Event event;
         while(!quit){
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             program.use();
-            vao.bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            vaos[i_active_vao].bind();
+            glDrawArrays(GL_TRIANGLES, 0, 6);
 
-//          Display();
             SDL_GL_SwapWindow(_window);
 
-          while( SDL_PollEvent( &event ) ){
-              if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE){
-                  return;
-              }
+            while( SDL_PollEvent( &event ) ){
+                if (event.type == SDL_KEYDOWN){
+                    if (event.key.keysym.sym == SDLK_ESCAPE){
+                        return;
+                    } else if (event.key.keysym.sym == SDLK_1){
+                        i_active_vao = 0;
+                    }else if (event.key.keysym.sym == SDLK_2){
+                        i_active_vao = 1;
+                    }
+                }
 
-            if( event.type == SDL_QUIT ){
-                  quit = true;
+                if( event.type == SDL_QUIT ){
+                    quit = true;
+                }
             }
-
-          }
         }
 //        SDL_GL_SwapWindow(_window);
     }
