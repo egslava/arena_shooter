@@ -24,6 +24,8 @@
 #include <memory>
 #include <exception>
 #include <vector>
+#include <chrono>
+using timer = std::chrono::high_resolution_clock;
 
 struct MyException : public std::exception{
     std::string _description;
@@ -229,7 +231,7 @@ public:
         if (_vbo == 0) _gen();
 
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
 
         return (VBO&&)*this;
     }
@@ -364,6 +366,7 @@ public:
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
+//        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24));
 
 //        mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -381,7 +384,7 @@ public:
         if (!_gl_context){
             throw MySDLException("Can not create an OpenGL context!");
         }
-        SDL_SAFE(SDL_GL_SetSwapInterval(1));
+        SDL_SAFE(SDL_GL_SetSwapInterval(0));  // vsync
 
         glewInit();
 
@@ -414,17 +417,68 @@ public:
         fragment_shader.compile(Shader::Type::FRAGMENT_SHADER, fragment_shader_code);
 
         program.link(std::move(vertex_shader), std::move(fragment_shader));
+
+        glGenBuffers(1, &vbo_random_points);
+        buffer_data_random(vbo_random_points);
+
+        glGenVertexArrays(1, &vao_random_points);
+        glBindVertexArray(vao_random_points);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_random_points);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //            typedef void (GLAPIENTRY * PFNGLENABLEVERTEXARRAYATTRIBPROC) (GLuint vaobj, GLuint index);
+        glEnableVertexAttribArray(0);
     }
+
+    void buffer_data_random(uint vbo){
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        float points[100*3];
+        for (int i = 0; i < 100; i++){
+            points[i] = static_cast<float>(random() % 1000) / 1000.f;
+            points[i+1] = static_cast<float>(random() % 1000) / 1000.f;
+            points[i+2] = static_cast<float>(random() % 1000) / 1000.f;
+        }
+        glBufferData(GL_ARRAY_BUFFER, 300 * sizeof(float), points, GL_STATIC_DRAW);
+    }
+
+    uint vbo_random_points, vao_random_points;
+    uint current_point;
 
     void render(){
         bool quit = false;
         SDL_Event event;
+
+        glBindVertexArray(vao_random_points);
+        program.use();
+
+        int i_stride_vertex = 0;
+
+        int i_frame = 0;
+        timer::time_point fps_start = timer::now();
+
         while(!quit){
+            timer::time_point fps_end = timer::now();
+            double ns = (double)(std::chrono::duration_cast<std::chrono::nanoseconds>(fps_end - fps_start).count());
+            double s = ns / 1000000000.;
+
+            if (s > 5){
+                fprintf(stdout, "FPS: %f, SPF: %f\n", static_cast<double>(i_frame) / s, s / static_cast<double>(i_frame) );
+                fflush(stdout);
+                fps_start = timer::now();
+                i_frame = 0;
+            }
+
+            i_frame += 1;
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            program.use();
-            vaos[i_active_vao].bind();
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+//            buffer_data_random(vbo_random_points);
+
+            i_stride_vertex += 1;
+            i_stride_vertex %= 297;
+            glDrawArrays(GL_TRIANGLES, i_stride_vertex, 3);
+
+//            vaos[i_active_vao].bind();
+//            glDrawArrays(GL_TRIANGLES, 0, 6);
 
             SDL_GL_SwapWindow(_window);
 
