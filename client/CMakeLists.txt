@@ -4,7 +4,6 @@ project (Arena)
 set(Arena_VERSION_MAJOR 0)
 set(Arena_VERSION_MINOR 0)
 
-
 ## glfw3
 #find_package(glfw3 REQUIRED)
 #set (EXTRA_LIBS ${EXTRA_LIBS} glfw)
@@ -21,6 +20,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${SDL2_LIBRARIES})
 
 # https://cmake.org/cmake/help/v3.0/module/FindOpenGL.html
 #set (OpenGL_GL_PREFERENCE GLVND)
+set (OpenGL_GL_PREFERENCE LEGACY)  # probably, should use GLVND instead,
 find_package(OpenGL REQUIRED)
 message("${OPENGL_INCLUDE_DIR}")
 message("${OPENGL_gl_LIBRARY}")
@@ -54,12 +54,14 @@ file(GLOB source_files
 #        "*.h"
 #        "Classes/*/*.cpp"
 #        "Classes/*/*.h"
-        "*.cpp"
-        "*/*.cpp"
+    "arena.cpp"
+    "src/*.cpp"
+    "src/*/*.cpp"
 )
 # </thx to: https://stackoverflow.com/a/51008650/1444191>
 
-add_executable(Arena arena.cpp ${source_files} )
+include_directories("./h")
+add_executable(Arena ${source_files} )
 target_link_libraries(Arena ${EXTRA_LIBS})
 # add_test(ArenaTest  echo "Ha" | grep "Hah" )
 
