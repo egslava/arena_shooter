@@ -35,3 +35,11 @@ struct MyGlException: public MyException {
 struct MyShaderException: public MyGlException {
     MyShaderException(const char *description):MyGlException(description){}
 };
+
+struct MyFileException: public MyException {
+    MyFileException(const char *description):MyException(description){}
+};
+
+struct MyUnsupportedFileException : public MyFileException {
+    MyUnsupportedFileException(const char *description):MyFileException(description){}
+};

@@ -57,6 +57,7 @@ file(GLOB source_files
     "arena.cpp"
     "src/*.cpp"
     "src/*/*.cpp"
+    "src/*/*/*.cpp"
 )
 # </thx to: https://stackoverflow.com/a/51008650/1444191>
 

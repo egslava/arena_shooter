@@ -207,3 +207,28 @@ struct B {
 3. cubemaps: http://manpages.ubuntu.com/manpages/xenial/man1/nvassemble.1.html
 
 
+
+https://vk.com/dexbee держит:
+A&D UA-911 BT
+Medisana 300 Connect
+Medisana BU 575 Connect
+Koogeek BP1
+Koogeek BP2
+
+Готовый драйвер/устройство:https://github.com/mfussi/bpmonitor
+
+Предсказания:
+https://github.com/arijit1410/LSTM-TimeSeries
+
+Чел пропатчил свой старый тонометр: https://github.com/edusteinhorst/WiFiBloodPressureMonitor
+
+Чел рассказывает про реверс-инжиниринг девайса: https://github.com/atbrask/BM65DataDownloader
+
+Чел тырит данные с Omron под OS X: https://github.com/seanwhitsell/Pressure
+
+Omron: https://github.com/LazyT/obpm/issues?q=is%3Aopen+is%3Aissue
+В принципе, можно брать данные раз в 1-2 недели и всё ок. Хотя, конечно, и не так удобно.
+
+Предикторы
+----------
+https://github.com/shawnlxh/Blood_Pressure_Prediction

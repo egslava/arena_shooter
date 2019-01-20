@@ -1,5 +1,7 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
+
+#include "gapi/loaders/pvr.h"
 
 #include "gapi.h"
 
@@ -53,13 +55,20 @@ Texture &&Texture::data(const char *file_name){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    unsigned char *pixels_data = stbi_load(file_name, &_width, &_height, &_nrChannels, 0);
+//    typedef void (GLAPIENTRY * PFNGLCOMPRESSEDTEXIMAGE2DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
+//    glCompressedTexImage2D()
+
+//    unsigned char *pixels_data = stbi_load(file_name, &_width, &_height, &_nrChannels, 0);
+    unsigned char *pixels_data = pvr_load(file_name, &_width, &_height, &_nrChannels);
     if (pixels_data == nullptr){
         throw MyGlException("Can not load the texture from file");
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels_data);
+
+//    GLAPI void GLAPIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels_data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(pixels_data);
+//    stbi_image_free(pixels_data);
+    pvr_image_free(pixels_data);
 
     return (Texture&&)*this;
 }

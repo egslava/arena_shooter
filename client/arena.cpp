@@ -92,7 +92,8 @@ public:
         fragment_shader.compile(Shader::Type::FRAGMENT_SHADER, fragment_shader_code);
 
         program.link(std::move(vertex_shader), std::move(fragment_shader));
-        texture.data("../client/res/texture.png");
+//        texture.data("../client/res/texture.png");
+        texture.data("../client/res/pvr_tex_tool_icon.pvr");
     }
 
     uint vbo_random_points, vao_random_points;
@@ -116,7 +117,7 @@ public:
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
             SDL_GL_SwapWindow(_window);
-
+            SDL_Delay(12);
             while( SDL_PollEvent( &event ) ){
                 if (event.type == SDL_KEYDOWN){
                     if (event.key.keysym.sym == SDLK_ESCAPE){
@@ -170,7 +171,12 @@ std::string GetCurrentWorkingDir( void ) {
   return current_working_dir;
 }
 
+#include "gapi/loaders/pvr.h"
+
 int main (int argc, const char **argv){
+//    int width, height, depth, n_channels;
+//    pvr_load("../client/res/pvr_tex_tool_icon.pvr", &width, &width, &height);
+//    return 0;
     std::cout << GetCurrentWorkingDir() << std::endl;
     printf("test\n");
 
