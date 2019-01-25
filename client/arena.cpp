@@ -177,6 +177,13 @@ std::string GetCurrentWorkingDir( void ) {
 
 //#define SDL_MAIN_HANDLED
 int main (int argc, char *argv[]){
+#ifndef NDEBUG
+    printf("It's a debug build\n");
+#endif
+
+#ifdef NDEBUG
+    printf("It's a release build\n");
+#endif
 //    int width, height, depth, n_channels;
 //    pvr_load("../client/res/pvr_tex_tool_icon.pvr", &width, &width, &height);
 //    return 0;
