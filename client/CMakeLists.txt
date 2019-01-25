@@ -82,6 +82,10 @@ if(WIN32)
 	# </GLEW>
 endif(WIN32)
 
+if(UNIX)
+    copy_files_if_different("res" "${CMAKE_BINARY_DIR}/res" "${CMAKE_SOURCE_DIR}/res/*")
+endif(UNIX)
+
 
 # SDL 2
 #message("Hello!")
