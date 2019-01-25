@@ -93,7 +93,7 @@ public:
 
         program.link(std::move(vertex_shader), std::move(fragment_shader));
 //        texture.data("../client/res/texture.png");
-        texture.data("../client/res/pvr_tex_tool_icon.pvr");
+        texture.data("./res/pvr_tex_tool_icon.pvr");
     }
 
     uint vbo_random_points, vao_random_points;
@@ -154,10 +154,12 @@ public:
 //}
 
 #include <stdio.h>  /* defines FILENAME_MAX */
-// #define WINDOWS  /* uncomment this line to use it for windows.*/
+#ifdef WIN32
+	#define WINDOWS  /* uncomment this line to use it for windows.*/
+#endif
 #ifdef WINDOWS
-#include <direct.h>
-#define GetCurrentDir _getcwd
+	#include <direct.h>
+	#define GetCurrentDir _getcwd
 #else
 #include <unistd.h>
 #define GetCurrentDir getcwd
@@ -173,7 +175,8 @@ std::string GetCurrentWorkingDir( void ) {
 
 #include "gapi/loaders/pvr.h"
 
-int main (int argc, const char **argv){
+//#define SDL_MAIN_HANDLED
+int main (int argc, char *argv[]){
 //    int width, height, depth, n_channels;
 //    pvr_load("../client/res/pvr_tex_tool_icon.pvr", &width, &width, &height);
 //    return 0;

@@ -232,3 +232,81 @@ Omron: https://github.com/LazyT/obpm/issues?q=is%3Aopen+is%3Aissue
 Предикторы
 ----------
 https://github.com/shawnlxh/Blood_Pressure_Prediction
+
+
+
+23/01/2019
+Билдю проект под Windows
+13:00-13:14 - спасибо челу: https://trenki2.github.io/blog/2017/06/02/using-sdl2-with-cmake/, благодаря которому я прикрутил SDL2 под Windows.
+13:14-13:41 - (прикручиваю GLEW, но нет). Оказалось, что надо было добавить ещё вот эту строчку для SDL2: `set(SDL2_DIR ${SDL2_DIR}  "${CMAKE_SOURCE_DIR}/libs/SDL2/win_x86_64/SDL2-2.0.9")`.
+
+Скачал вот этот файл:
+https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindGLEW.cmake
+
+13:41-14:04. Указал пути к GLEW вручную :'( Но, вроде как, оно собирается и генерит солюшн. Интересно, как его теперь запустить из под консоли?
+
+Выкинул glext.h, ибо не использовал, а под Windows его надо ещё найти..
+
+14:33 - под Windows SDL не устраивает модификатор const в main'е: `int main (int argc, const char *argv[])`. Пример правильной сигнатуры: `int main (int argc, char *argv[])`
+
+glew32.dll is missing. Нужно найти
+
+15:18 - ура, я запустил проект. Подтянулись текстуры, мой треугольник запустился. Текущие проблемы:
+1. Нужно самому копировать все dll'ки в папку с exe. Видимо, надо сделать build-task, который будет копировать нужные dll'ки.
+2. Папка с ресурсами каждый раз разная. Видимо, надо сделать таск, который будет копировать папку с ресурсами в нужные места.
+
+16:43 - так и не скопировал. Пошёл забирать посылки.
+
+
+add_executable(Arena ${source_files} )
+target_link_libraries(Arena ${EXTRA_LIBS})
+ 
+add_custom_command(TARGET Arena PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${Arena_RES_DIR}
+    ${PROJECT_BINARY_DIR}
+)
+
+
+24/09/2019
+10:20 - короч, проект так и не запускается из-за того, что ресы не копируются в нужную папку. Блин, я даже вопрос в группе не задал =( Нет, я задавал, но ответ не получил.
+
+
+ C:/Program Files/CMake/bin/cmake.exe;-E;copy_if_different;C:/Users/Viacheslav/my/arena_shooter/client/libs/GLEW/win32/glew-2.1.0/bin/Release/Win32/glew32.dll;C:/Users/Viacheslav/my/arena_shooter/client/build/glew32.dll
+
+
+add_custom_target(
+    "copy-dyn-libs" ALL 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${res_file}"
+        "$<TARGET_FILE_DIR:Arena>/res/"
+        
+) 
+
+
+add_custom_target(
+    "copy-dyn-libs" ALL 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        ${SDL2_DYNLIB_FROM}
+        ${SDL2_DYNLIB_TO}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        ${GLEW_DYNLIB_FROM}
+        ${GLEW_DYNLIB_TO}
+)                 # <--this is out-file path
+
+
+file(GLOB res_files "res/*")
+foreach(res_file ${res_files})
+    message ("${res_file}")
+    add_custom_command(
+        TARGET copy-dyn-libs
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+            "${res_file}"
+            "$<TARGET_FILE_DIR:Arena>/res/"
+    
+    )      
+endforeach()
+
+Занимался до, примерно 18-19, потом ушёл играть в MineCraft.
+
+25/01/2019 13:50 - опять тут
