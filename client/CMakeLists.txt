@@ -23,32 +23,43 @@ macro (set_debug_release out_var debug_case release_case)
 	endif()
 endmacro()
 
-macro(copy_files_if_different target_suffix to_dir from_dir)
-	# The Visual Studio target WILL ALWAYS BE OUTDATED. So it will always
-	# attempt to copy the files again and again However, the copy method
-	# itself will copy files only if they are different.
 
-	# 1. Create a new directory
-	# https://stackoverflow.com/questions/3702115/creating-a-directory-in-cmake
-	add_custom_target(
-		"copy-${target_suffix}" ALL
-		COMMAND ${CMAKE_COMMAND} -E make_directory "${to_dir}"
-                COMMENT "Copying directory ${from_dir} to ${to_dir}"
-	)
+macro(copy_files_if_different target_suffix to_dir from_regexp)
+    # The Visual Studio target WILL ALWAYS BE OUTDATED. So it will always
+    # attempt to copy the files again and again However, the copy method
+    # itself will copy files only if they are different.
 
-	# 2. Enumerating all the files
-	file(GLOB DL_FILES ${from_dir})
+    set(_target "copy-${target_suffix}")                                # _target    = "copy_res"
+                                                                        # from_regexp= "~/my/arena-shooter/client/res/*"
+                                                                        # to_dir     = "~/my/arena-shooter/client/build/res"
+    get_filename_component(_from_root ${from_regexp} DIRECTORY)         # _from_root = "~/my/arena-shooter/client/res"
 
-	# 3. Create a command to copy file from one place to ${to_dir}
-	foreach(DL_FILE ${DL_FILES})
-		add_custom_command(
-			TARGET "copy-${target_suffix}"
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-				"${DL_FILE}"
-				${to_dir}
-		)
-	endforeach()	
+
+    # 1. Create a new directory
+    # https://stackoverflow.com/questions/3702115/creating-a-directory-in-cmake
+    add_custom_target(
+        ${_target} ALL
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${to_dir}"
+        COMMENT "Recursively copying directory ${from_regexp} to ${to_dir}"
+    )
+
+    # 2. Enumerating all the files
+    file(GLOB_RECURSE _files ${from_regexp})
+
+    # 3. Create a command to copy file from one place to ${to_dir}
+    foreach(_from_file ${_files})                                        # _from_file="~/my/arena-shooter/client/res/texture.png"
+        # a. Getting a new filename
+        string(REPLACE ${_from_root} ${to_dir} _to_file ${_from_file})   # _to_file="~/arena-shooter/build/res/hero/body.png
+
+        # b. Creating a directory for the new file if it doesn't exist
+        get_filename_component(_to_subdir ${_to_file} DIRECTORY)         # _to_subdir="~/arena-shooter/build/res/hero/"
+        add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E make_directory "${_to_subdir}" )
+
+        # c. Copying the file to the new location
+        add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_from_file}" ${_to_file} )
+    endforeach()
 endmacro()
+
 
 if(WIN32)
 
