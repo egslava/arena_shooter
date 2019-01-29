@@ -54,7 +54,7 @@ unsigned char *pvr_load(const char *file_name, int *width, int *height, int *nrC
 #ifndef NDEBUG
     if (sizeof(PVR_Header) != 52) throw MyIllegalStateException("sizeof(PVR_Header) != 52");
     if (header._version != 0x03525650) throw MyFileException("Endianness doesn't match");
-    if (header.metadata_size != 0) throw MyFileException("Only compressed textures are supported!");
+//    if (header.metadata_size != 0) throw MyFileException("Only compressed textures are supported!");
     if (header.flags != 0) throw MyFileException("Flags are not currently supported");
 #endif
 
@@ -72,6 +72,7 @@ unsigned char *pvr_load(const char *file_name, int *width, int *height, int *nrC
 //    std::unique_ptr<unsigned char*> result()
 //    std::mem
 
+    fseek(file, header.metadata_size, SEEK_CUR);
 
     unsigned char *data = (unsigned char*) malloc(data_size);
     fread(data, data_size, 1, file);

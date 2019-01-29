@@ -33,6 +33,7 @@ macro(copy_files_if_different target_suffix to_dir from_dir)
 	add_custom_target(
 		"copy-${target_suffix}" ALL
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${to_dir}"
+                COMMENT "Copying directory ${from_dir} to ${to_dir}"
 	)
 
 	# 2. Enumerating all the files
@@ -96,6 +97,7 @@ set(SDL_BUILDING_LIBRARY ON)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${SDL2_LIBRARIES})
+# set(EXTRA_LIBS ${EXTRA_LIBS} "GLU")
 
 message(${SDL2_INCLUDE_DIRS})
 message(${SDL2_LIBRARIES})

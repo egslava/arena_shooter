@@ -14,7 +14,7 @@ const char *vertex_shader_code = ""
 "{\n"
 "	fragColor = vec4(aCol, 1);\n"
 "	fragTexCoord = aTex;\n"
-"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"    gl_Position = vec4(aPos.x, aPos.y, -aPos.z, 1.0);\n"
 "}   \n";
 
 const char *fragment_shader_code = ""
@@ -27,7 +27,8 @@ const char *fragment_shader_code = ""
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = texture(texture0, fragTexCoord) * fragColor;\n"
+"    FragColor = texture(texture0, fragTexCoord);\n"
+//"    FragColor = texture(texture0, fragTexCoord) * fragColor;\n"
 "}\n";
 
 //"    FragColor = fragColor;\n"

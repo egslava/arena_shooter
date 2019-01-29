@@ -310,3 +310,27 @@ endforeach()
 Занимался до, примерно 18-19, потом ушёл играть в MineCraft.
 
 25/01/2019 13:50 - опять тут
+
+26/01/2019 - ехал из города в город. В поезде написал небольшой трансформер из obj в свой формат, пока не дописан.
+27/01/2019 11:05 - продолжаю писать кодировщик.
+
+
+/home/egslava/my/arena-shooter/build-client-Desktop_Qt_5_10_1_GCC_64bit-Debug/res
+/home/egslava/my/arena-shooter/build-client-Desktop_Qt_5_10_1_GCC_64bit-Debug/
+
+28/01/2019 - спасибо ребятам из pro.graphon (mrshoor): когда написал свой кодировщик, была проблема  с Depth-буфером (из-за непонимания проекции) + была проблема с Z-up, Y-forward в Blender'е + мне нужно было флипать изображение по вертикали. Порешали. Ура! Теперь домик грузится! :)
+
+
+
+
+
+//1. Задокументировать, как именно экспортировать в obj:
+// a. Apply modifiers
+// b. Write normals
+// c. Include UVs
+// d. Triangulate faces
+// e. Keep vertex order
+// Y forward, Z - up
+//2. Задокументировать, что текстура должна быть флипнутой
+//3.mesh = bpy.data.meshes[0]; for v in mesh.vertices: v.co
+// 4. помог Alexandr Busarov (mrshoor)
