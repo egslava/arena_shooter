@@ -320,10 +320,8 @@ endforeach()
 
 28/01/2019 - спасибо ребятам из pro.graphon (mrshoor): когда написал свой кодировщик, была проблема  с Depth-буфером (из-за непонимания проекции) + была проблема с Z-up, Y-forward в Blender'е + мне нужно было флипать изображение по вертикали. Порешали. Ура! Теперь домик грузится! :)
 
-
-
-
-
+Коммит по доке:
+```
 //1. Задокументировать, как именно экспортировать в obj:
 // a. Apply modifiers
 // b. Write normals
@@ -334,3 +332,42 @@ endforeach()
 //2. Задокументировать, что текстура должна быть флипнутой
 //3.mesh = bpy.data.meshes[0]; for v in mesh.vertices: v.co
 // 4. помог Alexandr Busarov (mrshoor)
+```
+
+
+Коммит по коду:
+```
+[+] A 3D model loader and converter from .obj to the inner format. A model of a warehouse is not mine (thanks to: Author/Autor: Gunnar Correa - www.gunnarcorrea.com and SatellaSoft: http://www.satellasoft.com )
+[x] PVR loader couldn't load just a texture
+[x] All the textures are flipped now
+x Textures are also in std::vector now, so every mesh is having its own texture
+x added a comment for the build-task 'copy-resources', so, now, it's a bit more clear.
+```
+
+
+29/01/2019
+----------
+Хочу сделать так, чтобы в директории res можно было использовать поддиректории:
+/res/hero/model.obj
+/res/hero/texture.png
+
+И т.п.
+
+17:00 - сделал.
+17:37 - хочу сделать автоматическое преобразование obj-модели в .model через Python'овский скрипт во время билда.
+05:26 - модель автоматически преобразуется, причём только в том случае, если .obj новее сгенерированного файла, либо обновился код Python-конвертера.
+
+
+
+
+Credits:
+Графика:
+# @mrshoor - Alexander Busarov - подсказал мне, почему у меня была перевёрнутая модель в Blender'е, а так же рассказал, что в вершинном шейдере выходная xyzw, z записывает в z-buffer, поэтому у меня z-buffer работал, но отрисовывалась модель неправильно (нужна матрица проекции).
+
+# @alprog - Александр Тужик. Объяснил про то, что текстуру надо загружать перевёрнутой в OpenGL. А вместе с @mrshoor они доспорились до того, что я понял, что в текстурных координатах 0,0 всегда будет лежать то, что лежало в самом начале и в D3D и в OpenGL, несмотря на то, что в этих GAPI разные текстурные координаты и разные требования по порядку байт при загрузке текстур.
+
+CMake:
+# @Artalus (Igor Ivanov) и @egorpugin (Egor Pugin). Помогли портировать на Windows, объяснили про Generator Expressions. Сказали, что создать цель: copy-res, которая бы не устаревала постоянно, невозможно.
+@megaxela - Alex Ushanov. Подсказал, как добавить поддиректории в res.
+@DenisKormalev объяснил, что target_sources - это не только .cpp-файлы, а, вообще все зависимости проекта. А давать ли их на вход компилятору или нет - это уже решает CMake, в засимости от используемого языка программирования (должно настраиваться).
+

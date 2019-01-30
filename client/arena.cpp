@@ -104,6 +104,7 @@ public:
         vaos.push_back(VAO().load("./res/warehouse.model"));
         vaos.push_back(VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2)));
         vaos.push_back(VAO().load("./res/cube.model"));
+        vaos.push_back(VAO().load("./res/strange.model"));
 
 
         Shader vertex_shader, fragment_shader;
@@ -118,6 +119,7 @@ public:
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
         textures.push_back(Texture().data("./res/cottage.pvr"));
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
+        textures.push_back(Texture().data("./res/cottage.pvr"));
         textures.push_back(Texture().data("./res/cottage.pvr"));
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
     }
@@ -158,6 +160,8 @@ public:
                         i_active_vao = 2;
                     } else if (event.key.keysym.sym == SDLK_4){
                         i_active_vao = 3;
+                    } else if (event.key.keysym.sym == SDLK_5){
+                        i_active_vao = 4;
                     }
                 }
 

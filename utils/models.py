@@ -1,29 +1,80 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Converts OBJ file format to an internal representation.
+DESCRIPTION="""
+Converts an OBJ file to the internal model file.
 
-The format is:
-    1. int32 "VC" - vertex count 
-    2. float32[3] * "VC" - "vertex coordinates"
-    3. float32[2] * "VC" - "texture coordinates"
+Examples:
+    1. python3 models.py Warehouse.obj Warehouse.model
+    2. python3 models.py Warehouse.obj Warehouse.obj --replace-ext
+"""
+
+EPILOG = """
+Debugging
+---------
+For the debugging, please, run the script in Spyder twice:
+    1. First time it will fail.
+    2. The second time it will run with the default arguments and save the state
+    between runs, so you'll be able to debug it with comfort.
     
+        
 Created on Sat Jan 26 18:28:01 2019
 
 @author: egslava
 """
 
+######### DEBUG/ARGPARSE ###########
+
+if "N_DEBUG_RUNS" in globals():
+    if (N_DEBUG_RUNS == 1):
+        print("Please, don't forget to 'restart_debugging()' if you want to chage the debugging file");
+#    in_filename = "Cube.obj"
+#    in_filename = "Plane.obj"
+#    in_filename = "Warehouse-Triangulated.obj"
+    
+    in_filename = "Warehouse.obj"
+    out_filename = "/home/egslava/my/arena-shooter/client/res/warehouse.model"
+    verbose = False
+else:    
+    N_DEBUG_RUNS = 1
+    import argparse
+    parser = argparse.ArgumentParser(description=DESCRIPTION,
+                                     epilog=EPILOG, 
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('input', help='input .obj file')
+    parser.add_argument('output', help='output .model file to create')
+    parser.add_argument('--replace-ext', 
+                        action='store_true',
+                        help='In case if the output file has an extension '
+                        'it will be replaced to ".model automatically')
+    parser.add_argument('--silent', 
+                        action='store_true',
+                        help="Don't print any non-error output")
+    
+    args = parser.parse_args()
+    
+    in_filename = args.input
+    out_filename = args.output
+    verbose = not args.silent;
+    
+    if (args.replace_ext):
+        import os
+        out_filename = os.path.splitext(out_filename)[0] + ".model"
+
+# 1. Is it     
+
 if "data" not in globals():
-#    pass
-#else:
-#     filename = "Cube.obj"
-#     filename = "Plane.obj"
-     filename = "Warehouse.obj"
-#     filename = "Warehouse-Triangulated.obj"
-     with open(filename, "r") as obj_file:    
-#         print(help(obj_file))
+     with open(in_filename, "r") as obj_file:    
          data = obj_file.read()
          
+         
+         
+##############################################################
+########################## CONVERTING ########################
+##############################################################
+
+# Here we already have 
+# - `data` variable with the content of input obj
+# - `out_filename` variable with the exact output filename
 hash_count = 0
 empty_count = 0
 v_count = 0
@@ -98,7 +149,7 @@ for line in data.split("\n"):
              else:
                  i_vn = None
              
-             print(i_vt, i_vn)
+#             print(i_vt, i_vn)
              assert ((i_vt or i_vn) >= 0)
                  
              if (i_v < 0):
@@ -120,7 +171,7 @@ for line in data.split("\n"):
              vn = normals[i_vn] if i_vn is not None else None
              
 #             print(i_vt, i_vn, vt, vn)
-             assert ((vt or vn) >= 0)
+             assert vt or vn
                  
              face.append([v, vt, vn])
          
@@ -130,7 +181,7 @@ for line in data.split("\n"):
          
              
 #             __indexes.add(_)
-         print(line)
+#         print(line)
      elif not line.strip():
          empty_count += 1
 #         print("Empty line: ", line)
@@ -145,17 +196,18 @@ for line in data.split("\n"):
      else:
          unknown_count += 1
 #         print("Special line: ", line)
-     
-print("#: %4d | v: %4d | vt: %3d | vn: %3d | f: %4d | e: %4d" % (
-      hash_count, v_count, vt_count, vn_count, f_count, empty_count))
-         
-print("%3d v_indices" % len(v_indexes))
-print("%3d vt_indices" % len(vt_indexes))
-print("%3d vn_indices" % len(vn_indexes))
-print("%3d __indices" % len(__indexes))
 
-print("Unsupported lines found: %3d" % unsupported_count)
-print("Unknown lines found: %3d" % unknown_count)
+def print_debug_info():     
+    print("#: %4d | v: %4d | vt: %3d | vn: %3d | f: %4d | e: %4d" % (
+          hash_count, v_count, vt_count, vn_count, f_count, empty_count))
+             
+    print("%3d v_indices" % len(v_indexes))
+    print("%3d vt_indices" % len(vt_indexes))
+    print("%3d vn_indices" % len(vn_indexes))
+    print("%3d __indices" % len(__indexes))
+    
+    print("Unsupported lines found: %3d" % unsupported_count)
+    print("Unknown lines found: %3d" % unknown_count)
 #    print(line)
 
 assert (len(v_indexes) == v_count)
@@ -192,37 +244,35 @@ if None not in VBO_normals:
     
 import struct
 
-def write(filename):
-    with open(filename, 'wb') as fout:
-        n_triangles = len(VBO_positions) / 3
-        fout.write( struct.pack("I",  FLAGS))  # unsigned int - triangle count
-        fout.write( struct.pack("I", n_triangles))  # unsigned int - triangle count
-        
-        if FLAGS & HAS_POS:
-            for position in VBO_positions:
-                fout.write( struct.pack("fff",  *position))
-                
-        if FLAGS & HAS_TEX_COORDS:
-            for tex_coords in VBO_tex_coords:
-                fout.write( struct.pack("ff",  *tex_coords))
-                
-        if FLAGS & HAS_NORMALS:
-            for normal in VBO_normals:
-                fout.write( struct.pack("fff",  *normal))
+with open(out_filename, 'wb') as fout:
+    n_triangles = len(VBO_positions) // 3
+    fout.write( struct.pack("I",  FLAGS))  # unsigned int - triangle count
+    fout.write( struct.pack("I", n_triangles))  # unsigned int - triangle count
+    
+    if FLAGS & HAS_POS:
+        for position in VBO_positions:
+            fout.write( struct.pack("fff",  *position))
             
-#        
-#            
-#write('/home/egslava/my/arena-shooter/client/res/plane.model')
-#write('/home/egslava/my/arena-shooter/client/res/cube.model')
-write('/home/egslava/my/arena-shooter/client/res/warehouse.model')
-
-#https://free3d.com/3d-model/abandoned-cottage-house-825251.html
-
-# [✓]. Negative faces are not supported
-# [✓]. Check if v == v_indices and vt = vt_indices and vn == vn_indices
-# [ ]. Document ctrl+T in blender:
-# assert( len(face) == 3)  # currently, only triangles are supported
+    if FLAGS & HAS_TEX_COORDS:
+        for tex_coords in VBO_tex_coords:
+            fout.write( struct.pack("ff",  *tex_coords))
+            
+    if FLAGS & HAS_NORMALS:
+        for normal in VBO_normals:
+            fout.write( struct.pack("fff",  *normal))
+            
+if verbose:
+    print("Transformed {input} to {output}".format(input=in_filename, output=out_filename))            
 
 #Here we go. Now we have unidx_faces and we just need to export it! :)
 #         Yai!
-
+            
+def restart_debugging():
+    global data
+    global N_DEBUG_RUNS
+    
+    del data
+    del N_DEBUG_RUNS
+    
+    print("Restarted!")
+N_DEBUG_RUNS += 1

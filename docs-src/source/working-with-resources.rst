@@ -6,7 +6,7 @@ Using assets
 
 .. _res directory:
 
-**Resource directory** (res directory) is the *res/* directory in the *`project directory`_/client* directory.
+**Resource directory** (res directory) is the *res/* directory in the *`project directory`_/client* directory. It can contain subdirectories, so such path is fully legit: *res/hero/body.pvr*.
 
 Images
 ======
@@ -26,7 +26,7 @@ The PVR file format is used. So you should `download <https://www.imgtec.com/dev
 
 Models
 ======
-To load a model you need to convert it to save it as an .OBJ file and, then, use a converter to transform it to the inner format that should be places under *res/* directory.
+To load a model you need to convert it to save it as an .OBJ file and under *res/* directory.
 
 Exporting .obj in Blender
 -------------------------
@@ -41,9 +41,7 @@ Exporting .obj in Blender
 
 Converting .obj -> .model
 -------------------------
-The game loads its own 3D model file format. The converter is in the *$PROJECT_DIR/utils/models.py* module. *Currently*, to use it, you need to open the file and modify the input and output file names manually.
-
-After using the converter, place the model file to the *res* directory.
+The game loads its own 3D model file format. The converter is in the *$PROJECT_DIR/utils/models.py* module. All files with .obj extensions are processed automatically during the build. For instance, *res/hero/body.obj* will become a *build/res/hero/body.model*.
 
 
 Troubles
