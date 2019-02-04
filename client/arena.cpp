@@ -22,7 +22,7 @@
 
 #include "gapi.h"
 #include "resources.h"
-
+#include "scene/camera.h"
 //#include <GL/glu.h>
 
 #define SDL_SAFE(code) do { \
@@ -34,6 +34,9 @@
 
 class MySDLApp {
     SDL_Window* _window;
+    const int viewport_width = 640*2;
+    const int viewport_height = 480*2;
+
     SDL_GLContext _gl_context;
 
     void _print_sys_info(){
@@ -69,7 +72,7 @@ public:
 
 
 
-        _window=SDL_CreateWindow("Hello", 1, 1, 600, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        _window=SDL_CreateWindow("Hello", 1, 1, viewport_width, viewport_height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
         if (!_window){
             throw MySDLException("Can not create window!");
@@ -81,7 +84,8 @@ public:
         if (!_gl_context){
             throw MySDLException("Can not create an OpenGL context!");
         }
-        SDL_SAFE(SDL_GL_SetSwapInterval(0));  // vsync
+        SDL_SAFE(SDL_GL_SetSwapInterval(1));  // vsync
+        SDL_SAFE(SDL_ShowCursor(SDL_DISABLE));  // vsync
 
         glewInit();
 
@@ -89,11 +93,15 @@ public:
 
 //        gluPerspective ( 90, (GLint)width/ (GLint)height, 0.0, 200.0 );
 
-        glMatrixMode( GL_MODELVIEW );
-        glLoadIdentity();
+//        glMatrixMode( GL_MODELVIEW );
+//        glLoadIdentity();
         glEnable (GL_DEPTH_TEST);
 
-//        glViewport(0, 0, 640, 480);
+        glViewport(0, 0, viewport_width, viewport_height);
+//        glDepthRange(-100, 100);
+
+        GLdouble os = 10;   // ortho_size
+        glOrtho(-os, os, -os, os, -os, os);
         _print_sys_info();
 
 //        if (_surface = )
@@ -105,6 +113,8 @@ public:
         vaos.push_back(VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2)));
         vaos.push_back(VAO().load("./res/cube.model"));
         vaos.push_back(VAO().load("./res/strange.model"));
+        vaos.push_back(VAO().load("./res/axes.model"));
+        vaos.push_back(VAO().load("./res/axes-cube.model"));
 
 
         Shader vertex_shader, fragment_shader;
@@ -116,16 +126,20 @@ public:
 
         textures.push_back(Texture().data("./res/cottage.pvr"));
         textures.push_back(Texture().data("./res/cottage.pvr"));
+        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
+//        textures.push_back(Texture().data("./res/cottage.pvr"));
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
         textures.push_back(Texture().data("./res/cottage.pvr"));
-//        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
         textures.push_back(Texture().data("./res/cottage.pvr"));
-        textures.push_back(Texture().data("./res/cottage.pvr"));
+        textures.push_back(Texture().data("./res/axes.pvr"));
+        textures.push_back(Texture().data("./res/axes-cube.pvr"));
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
     }
 
     uint vbo_random_points, vao_random_points;
     uint current_point;
+
+    float angleOY = 0.0;
 
     void loop(){
         bool quit = false;
@@ -134,22 +148,71 @@ public:
 
         FPSCounter fps_counter;
 
+
+        bool keys_pressed[SDL_NUM_SCANCODES];
+        for (int i = 0; i < SDL_NUM_SCANCODES; i++) keys_pressed[i] = false;
+
+        bool is_left_pressed = false;
+        bool is_right_pressed = false;
+        float x=0, y=0, z=0, s=1.0;
+
+        Camera camera;
+
+        using timer=std::chrono::high_resolution_clock ;
+        timer::time_point frame_start = timer::now();
+        double tick_time = 0;
         while(!quit){
+            tick_time = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(timer::now() - frame_start).count()) / 1000000000.0 ;
+            frame_start = timer::now();
+
             fps_counter.measure();
 
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             vaos[i_active_vao].bind();
             textures[i_active_vao].bind();
-            program.use();
+
+//            camera.turn_left(-tick_time);
+//            camera.turn_up(tick_time/3.);
+            float moving_speed = 1 * tick_time;
+            if (keys_pressed[SDL_SCANCODE_W]){
+                camera.go(moving_speed);
+            }
+            if (keys_pressed[SDL_SCANCODE_S]){
+                camera.go(-moving_speed);
+            }
+            if (keys_pressed[SDL_SCANCODE_A]){
+                camera.stride(-moving_speed);
+            }
+            if (keys_pressed[SDL_SCANCODE_D]){
+                camera.stride(moving_speed);
+            }
+
+
+            if (is_left_pressed){
+                angleOY -= 0.001;
+            }
+            if (is_right_pressed){
+                angleOY += 0.001;
+            }
+
+            program.transform(angleOY, x, y, z, s, s, s);
+            program.use(camera);
 
             glDrawArrays(GL_TRIANGLES, 0, 3600);
 
             glDisable(GL_DEPTH_TEST);
             SDL_GL_SwapWindow(_window);
 //            SDL_Delay(12);
+
+//            SDL_SetCursor()
+
+            bool skip_warp = 0;
             while( SDL_PollEvent( &event ) ){
+
                 if (event.type == SDL_KEYDOWN){
+                    keys_pressed[event.key.keysym.scancode] = true;
+
                     if (event.key.keysym.sym == SDLK_ESCAPE){
                         return;
                     } else if (event.key.keysym.sym == SDLK_1){
@@ -162,7 +225,56 @@ public:
                         i_active_vao = 3;
                     } else if (event.key.keysym.sym == SDLK_5){
                         i_active_vao = 4;
+                    } else if (event.key.keysym.sym == SDLK_6){
+                        i_active_vao = 5;
+                    } else if (event.key.keysym.sym == SDLK_7){
+                        i_active_vao = 6;
+                    } else if (event.key.keysym.sym == SDLK_RIGHT){
+                        is_right_pressed = true;
+                    } else if (event.key.keysym.sym == SDLK_LEFT){
+                        is_left_pressed = true;
                     }
+                }
+
+                if (event.type == SDL_KEYUP){
+                    keys_pressed[event.key.keysym.scancode] = false;
+
+                    if (event.key.keysym.sym == SDLK_RIGHT){
+                        is_right_pressed = false;
+                    } else if (event.key.keysym.sym == SDLK_LEFT){
+                        is_left_pressed = false;
+                    }
+                }
+
+
+                if (event.type == SDL_MOUSEMOTION){
+                    if (skip_warp > 0){
+                        skip_warp -= 1;
+                        continue;
+                    }
+                    Sint32 x = event.motion.x, y = event.motion.y;
+
+                    float deltaOY = static_cast<float>(event.motion.xrel) * 0.01;
+                    float deltaOX = static_cast<float>(event.motion.yrel) * 0.01;
+
+                    printf("Mouse delta: %0.2f, %0.2f\n", deltaOX*100., deltaOY*100.);
+                    fflush(stdout);
+                    camera.turn_left(-deltaOY);
+                    camera.turn_up(-deltaOX);
+
+//                    angleOY += ;
+//                    printf("xrel: %3d, yrel: %3d\n", event.motion.xrel, event.motion.yrel);
+                    if (x < viewport_width * 0.1 || x > viewport_width * 0.9 || y < viewport_height * 0.1 || y > viewport_height * 0.9 ){
+//                        skip_warp += 20;
+                        SDL_WarpMouseInWindow(_window, viewport_width / 2, viewport_height / 2);
+                        while(SDL_PollEvent( &event ));
+
+                    }
+                }
+
+                if (event.type == SDL_MOUSEWHEEL){
+                    s += event.wheel.y / 10.f;
+                    printf("wheel_y: %3d\n", event.wheel.y);
                 }
 
                 if( event.type == SDL_QUIT ){
@@ -219,7 +331,13 @@ struct BinFile{
 #include "gapi/loaders/pvr.h"
 
 //#define SDL_MAIN_HANDLED
+
+#include "math/matrix.h"
 int main (int argc, char *argv[]){
+//    Mat4x4 i1 = Mat4x4::I;
+//    Mat4x4 i2 = Mat4x4::I;
+//    Mat4x4 i3 = i1 * i2;
+
 //    FILE *bin_file = fopen("test.bin", "wb");
 //    if(!bin_file) throw MyFileException("Can't open a binary file for writing");
 

@@ -148,8 +148,8 @@ find_package (GLEW REQUIRED)
 target_include_directories(Arena PUBLIC ${GLEW_INCLUDE_DIRS})
 target_link_libraries(Arena ${GLEW_LIBRARIES})
 
-include (CheckFunctionExists)
-check_function_exists(printf HAVE_LOG)
+#include (CheckFunctionExists)
+#check_function_exists(printf HAVE_LOG)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/Config.h.in"

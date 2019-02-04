@@ -80,7 +80,10 @@ unsigned char *pvr_load(const char *file_name, int *width, int *height, int *nrC
     *height = header.height;
 //    malloc(&data)
 
-    fclose(file);
+    int result = fclose(file);
+    if (result != 0){
+        throw MyFileException("Can not close a file!");
+    }
 
     return data;
 }

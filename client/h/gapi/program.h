@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene/camera.h"
+
 class Program {
     uint _program = 0;
     std::vector<Shader> _shaders;   // will be removed automatically, after the destructor is called
@@ -14,8 +16,9 @@ public:
     void _delete();
 
     void link(Shader &&vertex, Shader &&fragment);
+    void transform(const float transform, float tx, float ty, float tz, float sx, float sy, float sz);
 
-    void use();
+    void use(const Camera &camera);
 
 //    void bind(){
 //        glBindBuffer(GL_ARRAY_BUFFER, _shader);

@@ -13,6 +13,7 @@ void Shader::delete_(){
         }
     #endif
 
+    printf("Delete shader\n");
     glDeleteShader(_shader);
     _shader = 0;
 }
@@ -24,6 +25,7 @@ void Shader::_delete(){
 void Shader::compile(Shader::Type type, const char *source){
     if (_shader != 0) delete_();
     _shader = glCreateShader( (GLenum)type);
+    _type = type;
     //        typedef void (GLAPIENTRY * PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const GLchar *const* string, const GLint* length);
 
     glShaderSource(_shader, 1, &source, nullptr);

@@ -49,10 +49,10 @@ namespace MyModel {
         _load_buffer(header, Has::TEX, file, vbos.tex, 2);
         _load_buffer(header, Has::NOR, file, vbos.nor, 3);
 
-        fpos_t pos;
-        fgetpos(file, &pos);
+//        fpos_t pos;
+//        fgetpos(file, &pos);
+//        printf("FILE POS: %d", pos);
 
-        printf("FILE POS: %d", pos);
         fclose(file);
         return vbos;
     }

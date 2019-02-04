@@ -7,14 +7,20 @@ const char *vertex_shader_code = ""
 "layout (location = 1) in vec3 aCol;\n"
 "layout (location = 2) in vec2 aTex;\n"
 "\n"
+"uniform mat4 model;\n"
+"uniform mat4 projection;\n"
+"uniform mat4 camera;\n"
+
 "out vec4 fragColor;\n"
 "out vec2 fragTexCoord;\n"
+"out vec4 v_position;\n"
 "\n"
 "void main()\n"
 "{\n"
 "	fragColor = vec4(aCol, 1);\n"
 "	fragTexCoord = aTex;\n"
-"    gl_Position = vec4(aPos.x, aPos.y, -aPos.z, 1.0);\n"
+
+"    gl_Position = projection * camera * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}   \n";
 
 const char *fragment_shader_code = ""
@@ -22,6 +28,7 @@ const char *fragment_shader_code = ""
 "out vec4 FragColor;\n"
 "in vec4 fragColor;\n"
 "in vec2 fragTexCoord;\n"
+"in vec4 v_position;"
 
 "uniform sampler2D texture0;\n"
 "\n"
@@ -33,17 +40,26 @@ const char *fragment_shader_code = ""
 
 //"    FragColor = fragColor;\n"
 
-std::vector<float> _triangle_points {
-   0.5f, -0.5f,  0.0f,
-  -0.5f, -0.5f,  0.0f,
-    0.0f,  0.5f,  0.0f,
-};
+//std::vector<float> _triangle_points {
+//   0.5f, -0.5f,  0.0f,
+//  -0.5f, -0.5f,  0.0f,
+//    0.0f,  0.5f,  0.0f,
+//};
 
-std::vector<float> _triangle_colors {
-   0.0f,  1.0f,  0.0f,
-   0.0f,  0.0f,  1.0f,
-   1.0f,  0.0f,  0.0f,
-};
+
+//std::vector<float> _triangle_points {
+//    0.0f,    0.0f,  0.0f,
+//    0.0f,  480.f,  0.0f,
+//    640.0f,  480.0f,  0.0f,
+//};
+
+
+
+//std::vector<float> _triangle_colors {
+//   0.0f,  1.0f,  0.0f,
+//   0.0f,  0.0f,  1.0f,
+//   1.0f,  0.0f,  0.0f,
+//};
 
 std::vector<float> _triangle_texcoords = {
     1.0f, 0.0f,  // lower-right corner
@@ -60,6 +76,16 @@ std::vector<float> _square_points {
     0.5f,   0.5f,  0.0f,
     0.5f, -0.5f,  0.0f,
 };
+
+//std::vector<float> _square_points {
+//    0.0f,    0.0f,  0.0f,
+//    0.0f,  480.f,  0.0f,
+//  640.0f,  480.0f,  0.0f,
+
+//    0.0f,    0.f,  0.0f,
+//  640.0f,  480.0f,  0.0f,
+//  640.0f,    0.0f,  0.0f,
+//};
 
 std::vector<float> _square_colors {
     1.0f,  0.0f,  0.0f,

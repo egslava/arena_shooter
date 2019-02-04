@@ -1,5 +1,15 @@
 #pragma once
 
+#include <exception>
+#include <string>
+
+#ifndef NDEBUG
+#define EXCEPT_D
+#else
+#define EXCEPT_D noexcept
+#endif
+
+
 
 struct MyException : public std::exception{
     std::string _description;
@@ -19,6 +29,11 @@ struct MyException : public std::exception{
 
 struct MyIllegalStateException : public MyException {
     MyIllegalStateException (const char *description): MyException (description){}
+};
+
+
+struct MyIndexOutOfBoundException : public MyIllegalStateException {
+    MyIndexOutOfBoundException (const char *description): MyIllegalStateException (description){}
 };
 
 

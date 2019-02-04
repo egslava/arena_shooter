@@ -40,6 +40,9 @@ void Texture::delete_(){
 Texture::Texture(Texture &&that){
 //    printf("move constructor\n");
     _gl_id = that._gl_id;
+    _width = that._width;
+    _height = that._height;
+    _nrChannels = that._nrChannels;
     that._gl_id = 0;
 }
 
