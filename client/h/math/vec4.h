@@ -98,6 +98,43 @@ public:
         return result;
     }
 
+
+    /** It should have been "operator *", but it would have been
+        quite ambiguous, I believe */
+    float dot4(const Vec3 &other) const {
+        return  this->_x * other._x +
+                this->_y * other._y +
+                this->_z * other._z +
+                this->_w * other._w ;
+    }
+
+
+    /** It should have been "operator *", but it would have been
+        quite ambiguous, I believe */
+    float dot3(const Vec3 &other) const {
+        return  this->_x * other._x +
+                this->_y * other._y +
+                this->_z * other._z;
+    }
+
+    Vec3 cross3(const Vec3 &other) const {
+        return Vec3 (
+                    this->_y * other._z - this->_z * other._y,
+                    this->_z * other._x - this->_x * other._z,
+                    this->_x * other._y - this->_y * other._x,
+                    1
+        );
+    }
+
+    Vec3 xyz(const float w) const{
+        return Vec3 (
+                    this->_x,
+                    this->_y,
+                    this->_z,
+                    w
+        );
+    }
+
     static const Vec3 OX, OY, OZ;
 };
 

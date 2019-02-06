@@ -16,8 +16,41 @@ int test_baseops(){
     return 0;
 }
 
+void test_cross3(){
+    assert (Vec3::OX.cross3(Vec3::OY).eqXYZ(Vec3::OZ));
+    assert (Vec3::OY.cross3(Vec3::OX).eqXYZ(-Vec3::OZ));
+}
+
+void test_dot4(){
+    assert ( fabs(Vec3::OX.dot4(Vec3::OY) - 1) <= epsilon);
+    assert ( fabs(Vec3::OZ.dot4(Vec3::OY) - 1) <= epsilon);
+    assert ( fabs(Vec3::OX.dot4(Vec3::OY) - 1) <= epsilon);
+
+    assert ( fabs(Vec3::OX.dot4(Vec3::OX) - 2) <= epsilon);
+    assert ( fabs(Vec3::OY.dot4(Vec3::OY) - 2) <= epsilon);
+    assert ( fabs(Vec3::OZ.dot4(Vec3::OZ) - 2) <= epsilon);
+
+    assert ( fabs(Vec3(0,0,0,1).dot4(Vec3(0,0,0,2)) - 2) <= epsilon);
+}
+
+void test_dot3(){
+    assert ( fabs(Vec3::OX.dot3(Vec3::OY)) <= epsilon);
+    assert ( fabs(Vec3::OZ.dot3(Vec3::OY)) <= epsilon);
+    assert ( fabs(Vec3::OX.dot3(Vec3::OY)) <= epsilon);
+
+    assert ( fabs(Vec3::OX.dot3(Vec3::OX) - 1) <= epsilon);
+    assert ( fabs(Vec3::OY.dot3(Vec3::OY) - 1) <= epsilon);
+    assert ( fabs(Vec3::OZ.dot3(Vec3::OZ) - 1) <= epsilon);
+
+    assert ( fabs(Vec3(0,0,0,1).dot3(Vec3(0,0,0,2))) <= epsilon);
+}
+
+
 int tests(){
     test_baseops();
+    test_cross3();
+    test_dot4();
+    test_dot3();
     return 0;
 }
 
