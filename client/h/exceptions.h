@@ -27,6 +27,11 @@ struct MyException : public std::exception{
 };
 
 
+struct MyNotYetImplementedException : public MyException {
+    MyNotYetImplementedException (const char *description): MyException (description){}
+};
+
+
 struct MyIllegalStateException : public MyException {
     MyIllegalStateException (const char *description): MyException (description){}
 };

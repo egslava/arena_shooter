@@ -45,12 +45,21 @@ void test_dot3(){
     assert ( fabs(Vec3(0,0,0,1).dot3(Vec3(0,0,0,2))) <= epsilon);
 }
 
+void test_len3(){
+    assert ( fabs(Vec3::OX.len3() - 1) <= epsilon);
+    assert ( fabs(Vec3::OZ.len3() - 1) <= epsilon);
+    assert ( fabs(Vec3::OX.len3() - 1) <= epsilon);
 
+    assert ( fabs(Vec3(0, 0, 0, 1).len3()) <= epsilon);
+    assert ( fabs(Vec3(1, 0, 1, 1).len3() - sqrt(2)) <= epsilon);
+    assert ( fabs(Vec3(0, 3, 4, 1).len3() - 5) <= epsilon);
+}
 int tests(){
     test_baseops();
     test_cross3();
     test_dot4();
     test_dot3();
+    test_len3();
     return 0;
 }
 

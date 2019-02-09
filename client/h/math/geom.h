@@ -4,12 +4,20 @@
 #include "math/package.h"
 
 struct LinePlaneIntersectionResult {
-    enum class State: int { NO, ONE, MANY};
+    enum class State: int { NO=0, ONE=1, MANY=2};
 
     LinePlaneIntersectionResult(){};
     LinePlaneIntersectionResult(State state, const Vec3 &pos) : state(state), pos(pos){};
     State state;
     Vec3 pos;
+};
+
+
+struct LineLineIntersectionResult {
+    enum class State: int { NO=0, ONE=1, MANY=2};
+
+    State state;
+    float p1, p2;
 };
 
 /**                                            _    _   _
@@ -28,6 +36,8 @@ struct Line {
 
     /** Shift */
     Vec3 s;
+
+    Vec3 at(float parameter) const;
 };
 
 struct Plane {
@@ -39,8 +49,24 @@ struct Plane {
 
     /** by three points / triangle **/
     Plane(const Vec3 &A, const Vec3 &B, const Vec3 &C);
+
+    /** Can be negative */
+    float distance_to(const Vec3 &point) const;
+};
+
+struct Triangle {
+    Vec3 A, B, C;
+    Triangle(const Vec3 &A, const Vec3 &B, const Vec3 &C): A(A), B(B), C(C){}
+
+    explicit operator Plane () const {
+        return Plane(A, B, C);
+    }
+    /** normal */
+    Vec3 n() const;
 };
 
 LinePlaneIntersectionResult intersection(const Line &line, const Plane &plane);
+LineLineIntersectionResult intersection(const Line &line1, const Line &line2);
+LinePlaneIntersectionResult intersection(const Line &line, const Triangle &tri);
 
 #endif // GEOM_H

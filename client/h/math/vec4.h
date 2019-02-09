@@ -33,8 +33,8 @@ public:
         case 2: return _z;
         case 3: return _w;
 
-        default:
 #ifndef NDEBUG
+        default:
             throw MyIllegalStateException("Vec4");
 #endif
         }
@@ -46,8 +46,8 @@ public:
         case 1: return _y;
         case 2: return _z;
         case 3: return _w;
-        default:
 #ifndef NDEBUG
+        default:
             throw MyIllegalStateException("Vec4");
 #endif
         }
@@ -133,6 +133,14 @@ public:
                     this->_z,
                     w
         );
+    }
+
+    float len3() const{
+        return sqrt(dot3(*this) );
+    }
+
+    Vec3 normed() const{
+        return *this * (1.f/len3());
     }
 
     static const Vec3 OX, OY, OZ;

@@ -23,7 +23,10 @@
 #include "gapi.h"
 #include "resources.h"
 #include "scene/camera.h"
+#include "scene/model.h"
 //#include <GL/glu.h>
+
+#include <math.h>
 
 #define SDL_SAFE(code) do { \
     int result = code;\
@@ -34,8 +37,8 @@
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640*2;
-    const int viewport_height = 480*2;
+    const int viewport_width = 640;
+    const int viewport_height = 480;
 
     SDL_GLContext _gl_context;
 
@@ -51,7 +54,7 @@ public:
 
     Program program;
 
-    std::vector<VAO> vaos;
+    std::vector<Model> models;
     int i_active_vao = 0;
     VBO vbo_positions;
     std::vector<Texture> textures;
@@ -84,7 +87,7 @@ public:
         if (!_gl_context){
             throw MySDLException("Can not create an OpenGL context!");
         }
-        SDL_SAFE(SDL_GL_SetSwapInterval(1));  // vsync
+        SDL_SAFE(SDL_GL_SetSwapInterval(0));  // vsync
         SDL_SAFE(SDL_ShowCursor(SDL_DISABLE));  // vsync
 
         glewInit();
@@ -107,14 +110,15 @@ public:
 //        if (_surface = )
 
 
-        vaos.push_back(VAO().load("./res/plane.model"));
+        models.push_back(Model().load("./res/plane.model"));
 //        vaos.push_back(VAO().data(VBO().data(_triangle_points), VBO().data(_triangle_colors), VBO().data(_triangle_texcoords, 2)));
-        vaos.push_back(VAO().load("./res/warehouse.model"));
-        vaos.push_back(VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2)));
-        vaos.push_back(VAO().load("./res/cube.model"));
-        vaos.push_back(VAO().load("./res/strange.model"));
-        vaos.push_back(VAO().load("./res/axes.model"));
-        vaos.push_back(VAO().load("./res/axes-cube.model"));
+        models.push_back(Model().load("./res/warehouse.model"));
+//        models.push_back(Model(
+//                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
+        models.push_back(Model().load("./res/cube.model"));
+        models.push_back(Model().load("./res/strange.model"));
+        models.push_back(Model().load("./res/axes.model"));
+        models.push_back(Model().load("./res/axes-cube.model"));
 
 
         Shader vertex_shader, fragment_shader;
@@ -165,28 +169,91 @@ public:
             tick_time = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(timer::now() - frame_start).count()) / 1000000000.0 ;
             frame_start = timer::now();
 
-            fps_counter.measure();
+//            fps_counter.measure();
 
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            vaos[i_active_vao].bind();
+            models[i_active_vao].draw();
             textures[i_active_vao].bind();
 
 //            camera.turn_left(-tick_time);
 //            camera.turn_up(tick_time/3.);
-            float moving_speed = 1 * tick_time;
-            if (keys_pressed[SDL_SCANCODE_W]){
-                camera.go(moving_speed);
+
+            // camera navigation
+            {
+                Vec3 dir;
+                float moving_speed = 1 * tick_time;
+                if (keys_pressed[SDL_SCANCODE_W]){
+                    dir += Vec3(0, 0, -moving_speed);
+                    // camera.go(moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_S]){
+                    dir += Vec3(0, 0, moving_speed);
+//                    camera.go(-moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_A]){
+                    dir += Vec3(-moving_speed, 0, 0);
+//                    camera.stride(-moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_D]){
+                    dir += Vec3(moving_speed, 0, 0);
+//                    camera.stride(moving_speed);
+                }
+
+
+//                Vec3 cam = camera.getMatCameraToWorld() * Vec3(0, 0, 0);
+//                Vec3 res;
+//                Line l (cam,
+//                        camera.getMatCameraToWorld() * Vec3(0, 0, -1));
+
+
+//                dir = camera.getMatCameraToWorld() * dir;
+
+                Vec3 cam = camera.getMatCameraToWorld() * Vec3(0, 0, 0);
+                dir = camera.getMatCameraToWorld() * dir;
+                Vec3 res;
+                Line l (cam,
+                        dir);
+
+
+
+                float nearest_distance = 10000;
+                for (const Triangle &tri: models[i_active_vao]._triangles){
+                    LinePlaneIntersectionResult p=intersection(l, tri);
+                    if (p.state != p.State::ONE) continue;
+
+//                    printf("Bump!\n");
+
+//                    float d = (cam - p.pos).len3();
+//                    float d = static_cast<Plane>(tri).distance_to(camera._pos);
+                    float d = static_cast<Plane>(tri).distance_to(dir);
+                    float d2 = static_cast<Plane>(tri).distance_to(cam);
+                    printf("line: c: %f;%f;%f, s: %f;%f;%f\n", l.c._x, l.c._y, l.c._z, l.s._x, l.s._y, l.s._z);
+                    printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
+                    printf("triangle. %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
+                    float min_distance = 0.075;
+                    if (fabs(d) <= min_distance ){ //&& fabs(d) <= nearest_distance){
+                        nearest_distance = fabs(d);
+//                        res = tri.n() * dir.len3();
+//                        res = tri.n() * (tri.n().dot3(dir));
+//                        res += tri.n() * (0.15f-fabs(d)) * (d<0?-1:1);
+                        res = (d<0?-1:1)*tri.n() * (min_distance-fabs(d));
+                    }
+                }
+
+//                line: c: 0.000080;0.012763;-0.000100, s: -0.006794;0.451772;1.043850
+//                intersection. x: -0.006423, y: 0.511282, z: 1.043385
+//                triangle. -0.00,0.51,0.94;  -0.00,0.51,-0.85;  0.50,0.18,-0.85
+                if (nearest_distance < 10000){
+                    printf("Neares distance: %.4f\n", nearest_distance);
+                }
+
+
+//                res *= camera.getMatWorldToCamera();
+//                camera._pos += res;
+                camera._pos = dir + res;
             }
-            if (keys_pressed[SDL_SCANCODE_S]){
-                camera.go(-moving_speed);
-            }
-            if (keys_pressed[SDL_SCANCODE_A]){
-                camera.stride(-moving_speed);
-            }
-            if (keys_pressed[SDL_SCANCODE_D]){
-                camera.stride(moving_speed);
-            }
+            // --- camera navigation
 
 
             if (is_left_pressed){
@@ -199,7 +266,7 @@ public:
             program.transform(angleOY, x, y, z, s, s, s);
             program.use(camera);
 
-            glDrawArrays(GL_TRIANGLES, 0, 3600);
+//            glDrawArrays(GL_TRIANGLES, 0, 3600);
 
             glDisable(GL_DEPTH_TEST);
             SDL_GL_SwapWindow(_window);
@@ -257,7 +324,7 @@ public:
                     float deltaOY = static_cast<float>(event.motion.xrel) * 0.01;
                     float deltaOX = static_cast<float>(event.motion.yrel) * 0.01;
 
-                    printf("Mouse delta: %0.2f, %0.2f\n", deltaOX*100., deltaOY*100.);
+//                    printf("Mouse delta: %0.2f, %0.2f\n", deltaOX*100., deltaOY*100.);
                     fflush(stdout);
                     camera.turn_left(-deltaOY);
                     camera.turn_up(-deltaOX);
@@ -334,6 +401,7 @@ struct BinFile{
 
 #include "math/matrix.h"
 int main (int argc, char *argv[]){
+
 //    Mat4x4 i1 = Mat4x4::I;
 //    Mat4x4 i2 = Mat4x4::I;
 //    Mat4x4 i3 = i1 * i2;

@@ -24,8 +24,6 @@ public:
 
 
     VAO&& data(VBO &&vertex_data, VBO &&color_data, VBO &&texture_data);
-    VAO&& load(const char *filename);
-
     void bind();
 
     ~VAO();

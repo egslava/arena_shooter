@@ -47,14 +47,6 @@ VAO &&VAO::data(VBO &&vertex_data, VBO &&color_data, VBO &&texture_data){
     //        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data, GL_STATIC_DRAW);
 }
 
-VAO&& VAO::load(const char *filename) {
-    MyModel::VBOs vbos = MyModel::load(filename);
-
-    VAO&& result = this->data(VBO().data(vbos.pos), VBO().data(vbos.nor), VBO().data(vbos.tex, 2));
-    MyModel::free(vbos);
-
-    return (VAO&&)result;
-}
 
 void VAO::bind(){
     glBindVertexArray(_vao);
