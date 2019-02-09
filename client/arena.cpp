@@ -110,15 +110,15 @@ public:
 //        if (_surface = )
 
 
-        models.push_back(Model().load("./res/plane.model"));
+        models.push_back(Model().load("./res/plane.model", Texture().data("./res/cottage.pvr")));
 //        vaos.push_back(VAO().data(VBO().data(_triangle_points), VBO().data(_triangle_colors), VBO().data(_triangle_texcoords, 2)));
-        models.push_back(Model().load("./res/warehouse.model"));
+        models.push_back(Model().load("./res/warehouse.model", Texture().data("./res/cottage.pvr")));
 //        models.push_back(Model(
 //                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
-        models.push_back(Model().load("./res/cube.model"));
-        models.push_back(Model().load("./res/strange.model"));
-        models.push_back(Model().load("./res/axes.model"));
-        models.push_back(Model().load("./res/axes-cube.model"));
+        models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
+        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
+        models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
+        models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
 
 
         Shader vertex_shader, fragment_shader;
@@ -128,15 +128,15 @@ public:
         program.link(std::move(vertex_shader), std::move(fragment_shader));
 //        texture.data("../client/res/texture.png");
 
-        textures.push_back(Texture().data("./res/cottage.pvr"));
-        textures.push_back(Texture().data("./res/cottage.pvr"));
-        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
+//        textures.push_back();
+//        textures.push_back();
+//        textures.push_back();
+////        textures.push_back(Texture().data("./res/cottage.pvr"));
+////        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
 //        textures.push_back(Texture().data("./res/cottage.pvr"));
-//        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
-        textures.push_back(Texture().data("./res/cottage.pvr"));
-        textures.push_back(Texture().data("./res/cottage.pvr"));
-        textures.push_back(Texture().data("./res/axes.pvr"));
-        textures.push_back(Texture().data("./res/axes-cube.pvr"));
+//        textures.push_back(Texture().data("./res/cottage.pvr"));
+//        textures.push_back();
+//        textures.push_back();
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
     }
 
@@ -174,7 +174,7 @@ public:
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             models[i_active_vao].draw();
-            textures[i_active_vao].bind();
+//            textures[i_active_vao].bind();
 
 //            camera.turn_left(-tick_time);
 //            camera.turn_up(tick_time/3.);

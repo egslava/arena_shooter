@@ -46,6 +46,16 @@ Texture::Texture(Texture &&that){
     that._gl_id = 0;
 }
 
+Texture &&Texture::operator =(Texture &&that)
+{
+    this->_gl_id = that._gl_id;
+    this->_width = that._width;
+    this->_height = that._height;
+    this->_nrChannels = that._nrChannels;
+    that._gl_id = 0;
+    return (Texture&&)*this;
+}
+
 
 Texture &&Texture::data(const char *file_name){
     if (_gl_id == 0) _gen();

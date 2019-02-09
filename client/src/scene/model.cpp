@@ -1,7 +1,7 @@
 #include "scene/model.h"
 #include "gapi/loaders/mymodel.h"
 
-Model&& Model::load(const char *filename) {
+Model&& Model::load(const char *filename, Texture &&tex) {
     MyModel::VBOs vbos = MyModel::load(filename);
 
     VAO&& result = this->_vao.data(VBO().data(vbos.pos), VBO().data(vbos.nor), VBO().data(vbos.tex, 2));
@@ -15,11 +15,14 @@ Model&& Model::load(const char *filename) {
                                       Vec3(vbos.pos[i+6], vbos.pos[i+7], vbos.pos[i+8], 1));
     }
     MyModel::free(vbos);
+
+    this->_tex = std::move(tex);
     return (Model&&)*this;
 }
 
 void Model::draw()
 {
+    this->_tex.bind();
     this->_vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, this->_triangles.size() * 3);
 }

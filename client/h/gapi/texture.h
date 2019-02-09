@@ -14,6 +14,7 @@ public:
     Texture(){}
     Texture(const Texture &texture) = delete;
     Texture(Texture &&that);
+    Texture&& operator = (Texture &&that);
     bool isGen(){ return _gl_id != 0; }
 
     Texture&& data(const char *file_name);

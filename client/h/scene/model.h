@@ -17,7 +17,7 @@ public:
     Model(Model &&that) = default;
 //    Model(VAO &&vao): _vao(std::move(vao)) {}
 
-    Model&& load(const char *filename);
+    Model&& load(const char *filename, Texture &&Texture);
     void draw();
 };
 
