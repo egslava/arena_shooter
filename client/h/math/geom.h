@@ -31,6 +31,7 @@ struct LineLineIntersectionResult {
  */
 struct Line {
     Line(const Vec3 &from, const Vec3 &to);
+    Line(const Plane &normal, const Vec3 &point);
     /** Center */
     Vec3 c;
 
