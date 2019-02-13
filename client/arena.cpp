@@ -37,8 +37,8 @@
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640;
-    const int viewport_height = 480;
+    const int viewport_width = 640*2;
+    const int viewport_height = 480*2;
 
     SDL_GLContext _gl_context;
 

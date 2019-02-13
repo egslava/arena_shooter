@@ -52,7 +52,7 @@ void Program::link(Shader &&vertex, Shader &&fragment){
     glGetProgramiv(_program, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(_program, 512, NULL, info_log);
-        throw MyShaderException(info_log);
+        throw MyShaderLinkException(info_log);
     }
 }
 

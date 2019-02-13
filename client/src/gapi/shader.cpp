@@ -38,7 +38,14 @@ void Shader::compile(Shader::Type type, const char *source){
     glGetShaderiv(_shader, GL_COMPILE_STATUS, &success);
     if (!success){
         glGetShaderInfoLog(_shader, 512, nullptr, compilation_errors);
-        throw MyShaderException(compilation_errors);
+        switch (type){
+        case Shader::Type::VERTEX_SHADER:
+            throw MyVertexShaderException(compilation_errors);
+        case Shader::Type::FRAGMENT_SHADER:
+            throw MyFragmentShaderException(compilation_errors);
+        default:
+            throw MyIllegalStateException("Invalid shader type!\n");
+        }
     }
 }
 

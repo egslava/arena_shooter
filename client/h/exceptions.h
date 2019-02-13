@@ -46,14 +46,24 @@ struct MySDLException : public MyException {
     MySDLException(const char *description):MyException(description){}
 };
 
-
 struct MyGlException: public MyException {
     MyGlException(const char *description):MyException(description){}
 };
 
-
 struct MyShaderException: public MyGlException {
     MyShaderException(const char *description):MyGlException(description){}
+};
+
+struct MyVertexShaderException: public MyShaderException {
+    MyVertexShaderException(const char *description):MyShaderException(description){}
+};
+
+struct MyFragmentShaderException: public MyShaderException {
+    MyFragmentShaderException(const char *description):MyShaderException(description){}
+};
+
+struct MyShaderLinkException: public MyShaderException {
+    MyShaderLinkException(const char *description):MyShaderException(description){}
 };
 
 struct MyFileException: public MyException {

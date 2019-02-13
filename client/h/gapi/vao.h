@@ -23,7 +23,7 @@ public:
     }
 
 
-    VAO&& data(VBO &&vertex_data, VBO &&color_data, VBO &&texture_data);
+    VAO&& data(VBO &&vertex_data, VBO &&normal_data, VBO &&texture_data);
     void bind();
 
     ~VAO();
