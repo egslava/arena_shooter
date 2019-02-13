@@ -55,6 +55,7 @@ public:
     Program program;
 
     std::vector<Model> models;
+    Model model_environment;
     int i_active_vao = 0;
     VBO vbo_positions;
     std::vector<Texture> textures;
@@ -115,10 +116,13 @@ public:
         models.push_back(Model().load("./res/warehouse.model", Texture().data("./res/cottage.pvr")));
 //        models.push_back(Model(
 //                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
+        models.push_back(Model().load("./res/lightmaps/room.model", Texture().data("./res/lightmaps/lightmap.pvr")));
         models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
         models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
         models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
         models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
+        models.push_back(Model().load("./res/landscape.model", Texture().data("./res/lightmaps/lightmap.pvr")));
+        model_environment.load("./res/lightmaps/environment.model", Texture().data("./res/lightmaps/environment.pvr"));
 
 
         Shader vertex_shader, fragment_shader;
@@ -174,6 +178,7 @@ public:
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             models[i_active_vao].draw();
+            model_environment.draw();
 //            textures[i_active_vao].bind();
 
 //            camera.turn_left(-tick_time);
@@ -182,7 +187,7 @@ public:
             // camera navigation
             {
                 Vec3 dir;
-                float moving_speed = 1 * tick_time;
+                float moving_speed = 2 * tick_time;
                 if (keys_pressed[SDL_SCANCODE_W]){
                     dir += Vec3(0, 0, -moving_speed);
                     // camera.go(moving_speed);
@@ -323,6 +328,8 @@ public:
                         i_active_vao = 5;
                     } else if (event.key.keysym.sym == SDLK_7){
                         i_active_vao = 6;
+                    } else if (event.key.keysym.sym == SDLK_8){
+                        i_active_vao = 7;
                     } else if (event.key.keysym.sym == SDLK_RIGHT){
                         is_right_pressed = true;
                     } else if (event.key.keysym.sym == SDLK_LEFT){

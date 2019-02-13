@@ -111,7 +111,7 @@ void Program::use(const Camera &camera){
 
 
 //    Mat4x4 mat_projection = Mat4x4::set_perspective(60.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 100.00f);
-    Mat4x4 mat_projection = Mat4x4::set_perspective(120.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 100.00f);
+    Mat4x4 mat_projection = Mat4x4::set_perspective(90.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 100.00f);
     GLint loc_mat_projection = glGetUniformLocation(_program, "projection");
 #ifndef NDEBUG
     if (loc_mat_projection < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
