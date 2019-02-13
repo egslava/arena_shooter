@@ -66,15 +66,21 @@ macro(copy_files_if_different target_suffix to_dir from_regexp)
         # b. Creating a directory for the new file if it doesn't exist
         get_filename_component(_to_subdir ${_to_file} DIRECTORY)         # _to_subdir="~/arena-shooter/build/res/hero/"
         get_filename_component(__ext ${_to_file} EXT)         # __ext=".oBj"
-        string(TOUPPER ${__ext} _ext)
+#        message("from file: ${_from_file}\n"
+#                "to file: ${_to_file}\n"
+#                "to subdir: ${_to_subdir}\n"
+#                "${__ext}\n"
+#                "${__haha}\n")
+
+        if (__ext)
+            string(TOUPPER ${__ext} _ext)
+        else()
+            set(_ext "")
+        endif()
 
         add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E make_directory "${_to_subdir}" )
 
-        if (NOT ${_ext} MATCHES "OBJ")
-
-            # c. Copying the file to the new location
-            add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_from_file}" ${_to_file} )
-        else()
+        if (_ext MATCHES "OBJ")
             change_ext(_to_file ${_to_file} ".model")
 
             add_custom_command(
@@ -83,6 +89,10 @@ macro(copy_files_if_different target_suffix to_dir from_regexp)
                 COMMAND python3 ${Arena_CONVERT_OBJ_COMMAND} ${_from_file} ${_to_file}
             )
             target_sources(Arena PUBLIC ${_to_file})
+
+        else()
+            # c. Copying the file to the new location
+            add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_from_file}" ${_to_file} )
         endif()
     endforeach()
 endmacro()

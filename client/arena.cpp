@@ -118,7 +118,7 @@ public:
 //                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
         models.push_back(Model().load("./res/lightmaps/room.model", Texture().data("./res/lightmaps/lightmap.pvr")));
         models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
-        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
+//        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
         models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
         models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
         models.push_back(Model().load("./res/landscape.model", Texture().data("./res/lightmaps/lightmap.pvr")));
