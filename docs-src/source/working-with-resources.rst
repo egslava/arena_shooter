@@ -10,8 +10,12 @@ Using assets
 
 Images
 ======
-The PVR file format is used. So you should `download <https://www.imgtec.com/developers/powervr-sdk-tools/installers/>`_ Power VR SDK first and choose PVRTexTool in the installer.
+Automatic conversion
+--------------------
+Put images (png/jpg) to res/ folder. They will be automatically converted to .pvr. So, for instance, you created res/hero/helmet.png. In the code you should load res/her/helmet.pvr.
 
+Using PVRTexTool
+----------------
 .. figure:: res/screenshots/pvr_tex_tool-encode-texture.png
     :width: 300
     
@@ -22,6 +26,7 @@ The PVR file format is used. So you should `download <https://www.imgtec.com/dev
     :width: 300
 
     Use RGBA/8888 format and set **"Vertical Flip"** checkbox, then, press *Encode*. After that, save the new PVR image to the *"res"* directory of the project.
+
 
 
 Models

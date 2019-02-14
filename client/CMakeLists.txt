@@ -33,27 +33,112 @@ function(change_ext out_path in_path new_ext)
     set(${out_path} "${_path}/${_name_we}${new_ext}" PARENT_SCOPE)
 endfunction()
 
+macro (add_copy_file_command target source dest)
+    get_filename_component(_to_dir ${dest} DIRECTORY)         # _from_root = "~/my/arena-shooter/client/res"
+    add_custom_command(TARGET ${target} COMMAND ${CMAKE_COMMAND} -E make_directory "${_to_dir}")
+    add_custom_command(TARGET ${target} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${source} ${dest} VERBATIM )
+endmacro()
+
+function (add_custom_sources)
+    set(options VERBATIM)
+    set(oneValueArgs TARGET OUTPUT)
+    set(multiValueArgs DEPENDS COMMAND)
+
+    # Problem
+    # -------
+    # CMake doesn't support generator expressions for OUTPUT directories.
+    # Thus, it's not gonna work:
+    # add_custom_command(
+    #    OUTPUT "$<TARGET_FILE_DIR:Main>/gen/file1"
+    #    DEPENDS file1
+    #    COMMAND blah
+    # )
+    # target_sources(Main "$<TARGET_FILE_DIR:Arena>/gen/file1")
+    #
+    # So there will be problems with Debug/Release configurations
+    # in MS VS and Qt and Qt Creator and need to work it around.
+    #
+    # The section below contains the code with exactly the same logic.
+    #
+    # Using
+    # -----
+    # add_custom_sources(
+    #    TARGET Main
+    #    OUTPUT "$<TARGET_FILE_DIR:Main>/gen/file1"
+    #    DEPENDS file1
+    #    COMMAND blah
+    # )
+    # TARGET - is the target where your generated source code/image/3d-model/anything should be added as a dependency.
+    #
+    # How it works
+    # ------------
+    # 1. Replacing generator expressions to something unique.
+    #    I map such name "$<TARGET_FILE_DIR:Arena>/gen/file1"
+    #    to somewhat like: "genexpr/TARGET_FILE_DIR_Arena/gen/file1.shadow"
+    # 2. make all the subdirectories to SHADOW and the original file
+    # 3. add_custom_command on shadow file. I add TOUCH command to
+    #    create/update shadow file as well
+    # 4. target_sources(SHADOW_FILE)
+
+    # 1. Parsing args
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+    if ( ${ARG_VERBATIM} )
+        set(ARG_VERBATIM VERBATIM)
+    else()
+        unset(ARG_VERBATIM)
+    endif()
+
+    # 2. Getting SHADOW name
+    string(REGEX REPLACE "\\$<(.+)>" "\\1" _no_genex_file ${ARG_OUTPUT} )
+    string(REPLACE ":" "_" _no_genex_file ${_no_genex_file} )
+    set(_no_genex_file "${_no_genex_file}.shadow")
+    set(_no_genex_file "${CMAKE_BINARY_DIR}/genex/${_no_genex_file}")
+
+    # 3. Making all the dirs
+    get_filename_component(_no_genex_dir ${_no_genex_file} DIRECTORY)         # _from_root = "~/my/arena-shooter/client/res"
+    get_filename_component(_output_dir ${ARG_OUTPUT} DIRECTORY)
+
+    # 4. Running the command and TOUCHing SHADOW-file
+    add_custom_command(
+        OUTPUT ${_no_genex_file}
+        DEPENDS ${ARG_DEPENDS}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${_output_dir}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${_no_genex_dir}
+        COMMAND ${CMAKE_COMMAND} -E touch ${_no_genex_file}
+        COMMAND ${ARG_COMMAND}
+        ${ARG_VERBATIM}
+    )
+
+    # 5. Adding the dependency, so both files (the original and the shadow)
+    #    will be updated when the source file is changed
+    target_sources(Arena PUBLIC ${_no_genex_file})
+endfunction()
+
 
 macro(copy_files_if_different target_suffix to_dir from_regexp)
     # The Visual Studio target WILL ALWAYS BE OUTDATED. So it will always
     # attempt to copy the files again and again However, the copy method
     # itself will copy files only if they are different.
 
-    set(_target "copy-${target_suffix}")                                # _target    = "copy_res"
+    # set(_target "copy-${target_suffix}")                                # _target    = "copy_res"
                                                                         # from_regexp= "~/my/arena-shooter/client/res/*"
                                                                         # to_dir     = "~/my/arena-shooter/client/build/res"
     get_filename_component(_from_root ${from_regexp} DIRECTORY)         # _from_root = "~/my/arena-shooter/client/res"
 
-
     # 1. Create a new directory
     # https://stackoverflow.com/questions/3702115/creating-a-directory-in-cmake
-    add_custom_target(
-        ${_target}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${to_dir}"
-        COMMENT "Recursively copying directory ${from_regexp} to ${to_dir}"
-    )
+#    add_custom_target(
+#        ${_target}
+#        COMMENT "Recursively copying directory ${from_regexp} to ${to_dir}"
+#    )
 
-    add_dependencies(Arena ${_target})
+#    add_dependencies(Arena ${_target})
+    add_custom_command(
+        TARGET Arena
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${to_dir}"
+        VERBATIM
+    )
 
     # 2. Enumerating all the files
     file(GLOB_RECURSE _files ${from_regexp})
@@ -78,25 +163,47 @@ macro(copy_files_if_different target_suffix to_dir from_regexp)
             set(_ext "")
         endif()
 
-        add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E make_directory "${_to_subdir}" )
+        add_custom_command( TARGET Arena COMMAND ${CMAKE_COMMAND} -E make_directory ${_to_subdir} VERBATIM )
 
         if (_ext MATCHES "OBJ")
             change_ext(_to_file ${_to_file} ".model")
 
-            add_custom_command(
+            add_custom_sources(
+                TARGET Arena
                 OUTPUT ${_to_file}
                 DEPENDS ${Arena_CONVERT_OBJ_COMMAND} ${_from_file}
                 COMMAND python3 ${Arena_CONVERT_OBJ_COMMAND} ${_from_file} ${_to_file}
+                VERBATIM
             )
-            target_sources(Arena PUBLIC ${_to_file})
+#            target_sources(Arena PUBLIC ${_to_file})
 
+        elseif(_ext MATCHES "PNG" OR _ext MATCHES "JPG")
+            change_ext(_to_file ${_to_file} ".pvr")
+
+            add_custom_sources(
+                TARGET Arena
+                OUTPUT ${_to_file}
+                DEPENDS ${_from_file}
+                COMMAND PVRTexToolCLI -i ${_from_file} -o ${_to_file} -flip y -f R8G8B8A8
+                VERBATIM
+            )
+#            target_sources(Arena PUBLIC ${_to_file})
         else()
             # c. Copying the file to the new location
-            add_custom_command( TARGET ${_target} COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_from_file}" ${_to_file} )
+            add_custom_command(
+                TARGET Arena
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_from_file} ${_to_file} VERBATIM )
+#            add_custom_commant(
+#                TARGET Arena
+#                OUTPUT ${_to_file}
+#                DEPENDS ${_from_file}
+#                COMMAND "${CMAKE_COMMAND} -E copy_if_different ${_from_file} ${_to_file}"
+#                VERBATIM
+#            )
         endif()
+#        message("from file: ${_from_file}\nto file: ${_to_file}\n")
     endforeach()
 endmacro()
-
 
 if(WIN32)
 
@@ -132,7 +239,12 @@ if(WIN32)
 endif(WIN32)
 
 if(UNIX)
-    copy_files_if_different("res" "${CMAKE_BINARY_DIR}/res" "${CMAKE_SOURCE_DIR}/res/*")
+
+#    message("_out: ${_out}")
+    #    string(REPLACE _out _replaced _out "$<TARGET_FILE_DIR:Arena>/res" )
+
+    copy_files_if_different("res" "$<TARGET_FILE_DIR:Arena>/res" "${CMAKE_SOURCE_DIR}/res/*")
+#    copy_files_if_different("res" "${CMAKE_BINARY_DIR}/res" "${CMAKE_SOURCE_DIR}/res/*")
 endif(UNIX)
 
 

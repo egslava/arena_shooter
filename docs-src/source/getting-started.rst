@@ -29,6 +29,7 @@ Dependencies
 
 1. Visual Studio (C++).
 2. `CMake <https://cmake.org/download/>`_.
+3. PVRTexTool from `PowerVR SDK <https://www.imgtec.com/developers/powervr-sdk-tools/installers/>`_. You also need to add PVRTexToolCLI to your `PATH <https://www.computerhope.com/issues/ch000549.htm>`__.
 
 
 Build & Run
@@ -65,8 +66,10 @@ Dependencies
 ~~~~~~~~~~~~
 
 1. cmake
-1. libsdl2-dev
-2. libglew-dev
+2. libsdl2-dev
+3. libglew-dev
+4. PVRTexTool from `PowerVR SDK <https://www.imgtec.com/developers/powervr-sdk-tools/installers/>`_. You also need to add PVRTexToolCLI to your `PATH <https://stackoverflow.com/a/14638025/1444191>`__.
+
 
 
 
