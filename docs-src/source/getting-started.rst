@@ -68,7 +68,7 @@ Dependencies
 1. cmake
 2. libsdl2-dev
 3. libglew-dev
-4. PVRTexTool from `PowerVR SDK <https://www.imgtec.com/developers/powervr-sdk-tools/installers/>`_. You also need to add PVRTexToolCLI to your `PATH <https://stackoverflow.com/a/14638025/1444191>`__.
+4. PVRTexTool from `PowerVR SDK <https://www.imgtec.com/developers/powervr-sdk-tools/installers/>`_. You also need to add PVRTexToolCLI to your `PATH <https://stackoverflow.com/a/14638025/1444191>`__. Probably, it's better to change */etc/environment*, since Qt Creator uses *sh* instead of *bash*.
 
 
 
