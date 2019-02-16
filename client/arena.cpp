@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "gapi.h"
-#include "resources.h"
 #include "scene/camera.h"
 #include "scene/model.h"
+#include "scene/scene.h"
 //#include <GL/glu.h>
 
 #include <math.h>
@@ -35,12 +35,38 @@
     } \
 }while(false);
 
+struct Level {
+    Scene scene;
+    SPNode player;
+    SPNodes enemies;
+
+    void init(){
+        scene.init();
+        scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")/*, Color(WHITE)*/))});
+//        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
+        scene.nodes.emplace_back(new Node{"Nebula", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")/*, Color(BLACK)*/))});
+        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/))});
+//        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
+        scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_001.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+
+        player = make_shared<Node>();
+        player->name = "Player";
+        player->flags = Node::Flags::NONE;
+        player->phys = Node::PhysFlags::RIGID;
+        scene.nodes.emplace_back(player);
+        scene._camera = player;
+    }
+};
+
+
 class MySDLApp {
     SDL_Window* _window;
     const int viewport_width = 640*2;
     const int viewport_height = 480*2;
 
     SDL_GLContext _gl_context;
+    Level level;
 
     void _print_sys_info(){
         int major_version = 0;
@@ -52,13 +78,13 @@ class MySDLApp {
     }
 public:
 
-    Program program;
 
-    std::vector<Model> models;
-    Model model_environment;
-    int i_active_vao = 0;
-    VBO vbo_positions;
-    std::vector<Texture> textures;
+
+//    std::vector<Model> models;
+//    Model model_environment;
+//    int i_active_level = 0;
+//    VBO vbo_positions;
+//    std::vector<Texture> textures;
 
     MySDLApp(){
         if (SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -105,31 +131,29 @@ public:
 //        glDepthRange(-100, 100);
 
         GLdouble os = 10;   // ortho_size
-        glOrtho(-os, os, -os, os, -os, os);
+//        glOrtho(-os, os, -os, os, -os, os);
         _print_sys_info();
 
 //        if (_surface = )
 
 
-        models.push_back(Model().load("./res/plane.model", Texture().data("./res/cottage.pvr")));
-//        vaos.push_back(VAO().data(VBO().data(_triangle_points), VBO().data(_triangle_colors), VBO().data(_triangle_texcoords, 2)));
-        models.push_back(Model().load("./res/warehouse.model", Texture().data("./res/cottage.pvr")));
-//        models.push_back(Model(
-//                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
-        models.push_back(Model().load("./res/lightmaps/room.model", Texture().data("./res/lightmaps/lightmap.pvr")));
-        models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
-//        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
-        models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
-        models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
-        models.push_back(Model().load("./res/landscape.model", Texture().data("./res/lightmaps/lightmap.pvr")));
-        model_environment.load("./res/lightmaps/environment.model", Texture().data("./res/lightmaps/environment.pvr"));
+//        models.push_back(Model().load("./res/plane.model", Texture().data("./res/cottage.pvr")));
+////        vaos.push_back(VAO().data(VBO().data(_triangle_points), VBO().data(_triangle_colors), VBO().data(_triangle_texcoords, 2)));
+//        models.push_back(Model().load("./res/warehouse.model", Texture().data("./res/cottage.pvr")));
+////        models.push_back(Model(
+////                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
+//        models.push_back(Model().load("./res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")));
+
+//        models.push_back(Model().load("./res/lightmaps/room.model", Texture().data("./res/lightmaps/lightmap.pvr")));
+//        models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
+////        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
+//        models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
+//        models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
+//        models.push_back(Model().load("./res/level/Flower.model", Texture().data("./res/lightmaps/lightmap.pvr")));
+////        models.push_back(Model().load("./res/landscape.model", Texture().data("./res/lightmaps/lightmap.pvr")));
+//        model_environment.load("./res/lightmaps/environment.model", Texture().data("./res/level/textures/nebula.pvr"));
 
 
-        Shader vertex_shader, fragment_shader;
-        vertex_shader.compile(Shader::Type::VERTEX_SHADER, vertex_shader_code);
-        fragment_shader.compile(Shader::Type::FRAGMENT_SHADER, fragment_shader_code);
-
-        program.link(std::move(vertex_shader), std::move(fragment_shader));
 //        texture.data("../client/res/texture.png");
 
 //        textures.push_back();
@@ -142,17 +166,17 @@ public:
 //        textures.push_back();
 //        textures.push_back();
 //        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
+        level.init();
     }
 
-    uint vbo_random_points, vao_random_points;
-    uint current_point;
+//    uint vbo_random_points, vao_random_points;
+//    uint current_point;
 
     float angleOY = 0.0;
 
     void loop(){
         bool quit = false;
         SDL_Event event;
-        int i_stride_vertex = 0;
 
         FPSCounter fps_counter;
 
@@ -160,11 +184,8 @@ public:
         bool keys_pressed[SDL_NUM_SCANCODES];
         for (int i = 0; i < SDL_NUM_SCANCODES; i++) keys_pressed[i] = false;
 
-        bool is_left_pressed = false;
-        bool is_right_pressed = false;
-        float x=0, y=0, z=0, s=1.0;
+        float s=1.0;
 
-        Camera camera;
 
         using timer=std::chrono::high_resolution_clock ;
         timer::time_point frame_start = timer::now();
@@ -177,12 +198,10 @@ public:
 
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            models[i_active_vao].draw();
-            model_environment.draw();
-//            textures[i_active_vao].bind();
+//            models[i_active_level].draw();
+            level.scene.move_colliding();
+            level.scene.render();
 
-//            camera.turn_left(-tick_time);
-//            camera.turn_up(tick_time/3.);
 
             // camera navigation
             {
@@ -190,96 +209,20 @@ public:
                 float moving_speed = 2 * tick_time;
                 if (keys_pressed[SDL_SCANCODE_W]){
                     dir += Vec3(0, 0, -moving_speed);
-                    // camera.go(moving_speed);
+                    level.player->camera.go(moving_speed);
                 }
                 if (keys_pressed[SDL_SCANCODE_S]){
                     dir += Vec3(0, 0, moving_speed);
-//                    camera.go(-moving_speed);
+                    level.player->camera.go(-moving_speed);
                 }
                 if (keys_pressed[SDL_SCANCODE_A]){
                     dir += Vec3(-moving_speed, 0, 0);
-//                    camera.stride(-moving_speed);
+                    level.player->camera.stride(-moving_speed);
                 }
                 if (keys_pressed[SDL_SCANCODE_D]){
                     dir += Vec3(moving_speed, 0, 0);
-//                    camera.stride(moving_speed);
+                    level.player->camera.stride(moving_speed);
                 }
-
-
-//                Vec3 cam = camera.getMatCameraToWorld() * Vec3(0, 0, 0);
-//                Vec3 res;
-//                Line l (cam,
-//                        camera.getMatCameraToWorld() * Vec3(0, 0, -1));
-
-
-//                dir = camera.getMatCameraToWorld() * dir;
-
-                Vec3 cam = camera.getMatCameraToWorld() * Vec3(0, 0, 0);
-                dir = camera.getMatCameraToWorld() * dir;
-                Vec3 res;
-                Line l (cam,
-                        dir);
-
-
-
-                float nearest_distance = 10000;
-                float min_distance = 0.075;
-//                for (const Triangle &tri: models[i_active_vao]._triangles){
-//                    LinePlaneIntersectionResult p=intersection(l, tri);
-//                    if (p.state != p.State::ONE) continue;
-
-////                    printf("Bump!\n");
-
-////                    float d = (cam - p.pos).len3();
-////                    float d = static_cast<Plane>(tri).distance_to(camera._pos);
-//                    float d = static_cast<Plane>(tri).distance_to(dir);
-//                    float d2 = static_cast<Plane>(tri).distance_to(cam);
-//                    // printf("line: c: %f;%f;%f, s: %f;%f;%f\n", l.c._x, l.c._y, l.c._z, l.s._x, l.s._y, l.s._z);
-//                    // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
-//                    // printf("triangle. %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
-
-//                    if (fabs(d) <= min_distance ){ //&& fabs(d) <= nearest_distance){
-//                        nearest_distance = fabs(d);
-////                        res = tri.n() * dir.len3();
-////                        res = tri.n() * (tri.n().dot3(dir));
-////                        res += tri.n() * (0.15f-fabs(d)) * (d<0?-1:1);
-//                        res = (d<0?-1:1)*tri.n() * (min_distance-fabs(d));
-//                    }
-//                }
-
-                cam = dir + res;
-                camera._pos = cam; //dir + res;
-
-
-                for (const Triangle &tri: models[i_active_vao]._triangles){
-                    Line l (cam, cam+tri.n());
-                    LinePlaneIntersectionResult p=intersection(l, tri);
-                    if (p.state != p.State::ONE) continue;
-
-                    float d = static_cast<Plane>(tri).distance_to(cam);
-                    float d2 = static_cast<Plane>(tri).distance_to(cam);
-                    // printf("line: c: %f;%f;%f, s: %f;%f;%f\n", l.c._x, l.c._y, l.c._z, l.s._x, l.s._y, l.s._z);
-                    // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
-                    // printf("triangle. %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
-                    if (fabs(d) <= min_distance ){ //&& fabs(d) <= nearest_distance){
-                        nearest_distance = fabs(d);
-//                        res = tri.n() * dir.len3();
-//                        res = tri.n() * (tri.n().dot3(dir));
-//                        res += tri.n() * (0.15f-fabs(d)) * (d<0?-1:1);
-                        res += (d<0?-1:1)*tri.n() * (min_distance-fabs(d));
-                    }
-                }
-
-                cam = cam + res;
-                camera._pos = cam; //dir + res;
-
-//                line: c: 0.000080;0.012763;-0.000100, s: -0.006794;0.451772;1.043850
-//                intersection. x: -0.006423, y: 0.511282, z: 1.043385
-//                triangle. -0.00,0.51,0.94;  -0.00,0.51,-0.85;  0.50,0.18,-0.85
-//                if (nearest_distance < 10000){
-//                    printf("Neares distance: %.4f\n", nearest_distance);
-//                }
-
 
 //                res *= camera.getMatWorldToCamera();
 //                camera._pos += res;
@@ -287,18 +230,6 @@ public:
             }
             // --- camera navigation
 
-
-            if (is_left_pressed){
-                angleOY -= 0.001;
-            }
-            if (is_right_pressed){
-                angleOY += 0.001;
-            }
-
-            program.transform(angleOY, x, y, z, s, s, s);
-            program.use(camera);
-
-//            glDrawArrays(GL_TRIANGLES, 0, 3600);
 
             glDisable(GL_DEPTH_TEST);
             SDL_GL_SwapWindow(_window);
@@ -314,39 +245,33 @@ public:
 
                     if (event.key.keysym.sym == SDLK_ESCAPE){
                         return;
-                    } else if (event.key.keysym.sym == SDLK_1){
-                        i_active_vao = 0;
-                    } else if (event.key.keysym.sym == SDLK_2){
-                        i_active_vao = 1;
-                    } else if (event.key.keysym.sym == SDLK_3){
-                        i_active_vao = 2;
-                    } else if (event.key.keysym.sym == SDLK_4){
-                        i_active_vao = 3;
-                    } else if (event.key.keysym.sym == SDLK_5){
-                        i_active_vao = 4;
-                    } else if (event.key.keysym.sym == SDLK_6){
-                        i_active_vao = 5;
-                    } else if (event.key.keysym.sym == SDLK_7){
-                        i_active_vao = 6;
-                    } else if (event.key.keysym.sym == SDLK_8){
-                        i_active_vao = 7;
-                    } else if (event.key.keysym.sym == SDLK_RIGHT){
-                        is_right_pressed = true;
-                    } else if (event.key.keysym.sym == SDLK_LEFT){
-                        is_left_pressed = true;
                     }
+//                    else if (event.key.keysym.sym == SDLK_1){
+//                        i_active_level = 0;
+//                    } else if (event.key.keysym.sym == SDLK_2){
+//                        i_active_level = 1;
+//                    } else if (event.key.keysym.sym == SDLK_3){
+//                        i_active_level = 2;
+//                    } else if (event.key.keysym.sym == SDLK_4){
+//                        i_active_level = 3;
+//                    } else if (event.key.keysym.sym == SDLK_5){
+//                        i_active_level = 4;
+//                    } else if (event.key.keysym.sym == SDLK_6){
+//                        i_active_level = 5;
+//                    } else if (event.key.keysym.sym == SDLK_7){
+//                        i_active_level = 6;
+//                    } else if (event.key.keysym.sym == SDLK_8){
+//                        i_active_level = 7;
+//                    } else if (event.key.keysym.sym == SDLK_RIGHT){
+//                        is_right_pressed = true;
+//                    } else if (event.key.keysym.sym == SDLK_LEFT){
+//                        is_left_pressed = true;
+//                    }
                 }
 
                 if (event.type == SDL_KEYUP){
                     keys_pressed[event.key.keysym.scancode] = false;
-
-                    if (event.key.keysym.sym == SDLK_RIGHT){
-                        is_right_pressed = false;
-                    } else if (event.key.keysym.sym == SDLK_LEFT){
-                        is_left_pressed = false;
-                    }
                 }
-
 
                 if (event.type == SDL_MOUSEMOTION){
                     if (skip_warp > 0){
@@ -360,8 +285,8 @@ public:
 
 //                    printf("Mouse delta: %0.2f, %0.2f\n", deltaOX*100., deltaOY*100.);
                     fflush(stdout);
-                    camera.turn_left(-deltaOY);
-                    camera.turn_up(-deltaOX);
+                    level.player->camera.turn_left(-deltaOY);
+                    level.player->camera.turn_up(-deltaOX);
 
 //                    angleOY += ;
 //                    printf("xrel: %3d, yrel: %3d\n", event.motion.xrel, event.motion.yrel);
