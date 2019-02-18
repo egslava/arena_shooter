@@ -51,7 +51,27 @@ void Scene::init(){
     program.link(std::move(vertex_shader), std::move(fragment_shader));
 }
 
-void Scene::move_colliding()
+void Scene::integrate()
+{
+    const float n_times = 1;
+
+    for (int i = 0; i < n_times; i++){
+        this->_gravity_pass(this->_elapsed / n_times);
+        this->_move_colliding();
+    }
+}
+
+void Scene::_gravity_pass(double dt)
+{
+    for (const auto &node : this->nodes){
+        if (node->phys != Node::PhysFlags::RIGID){
+            continue;
+        }
+        node->camera._pos += Vec3(0, -60 * dt, 0);
+    }
+}
+
+void Scene::_move_colliding()
 {
     float min_distance = 1.1;
     for (const auto &node1 : this->nodes){
@@ -100,13 +120,14 @@ void Scene::move_colliding()
 }
 
 void Scene::render(){
-
+    this->_elapsed.update();
     //    	program.transform(angleOY, x, y, z, s, s, s);
     program.use(_camera->camera);
 
     for (const SPNode &node : nodes){
 
         if (in_frustum(node)){
+            program.set_color(node->model._color);
             node->model.draw(); // scene.render(node);
         }
     }

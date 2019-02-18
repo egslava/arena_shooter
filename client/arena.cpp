@@ -45,15 +45,16 @@ struct Level {
         scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")/*, Color(WHITE)*/))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
         scene.nodes.emplace_back(new Node{"Nebula", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")/*, Color(BLACK)*/))});
-        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/))});
+        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb()))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
-        scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb()))});
         scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_001.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
 
         player = make_shared<Node>();
         player->name = "Player";
         player->flags = Node::Flags::NONE;
         player->phys = Node::PhysFlags::RIGID;
+        player->camera._pos = Vec3(0, 1, 0);
         scene.nodes.emplace_back(player);
         scene._camera = player;
     }
@@ -62,8 +63,8 @@ struct Level {
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640*2;
-    const int viewport_height = 480*2;
+    const int viewport_width = 640*3;
+    const int viewport_height = 480*3;
 
     SDL_GLContext _gl_context;
     Level level;
@@ -121,52 +122,14 @@ public:
 
         glEnable(GL_DEPTH_TEST);
 
-//        gluPerspective ( 90, (GLint)width/ (GLint)height, 0.0, 200.0 );
-
-//        glMatrixMode( GL_MODELVIEW );
-//        glLoadIdentity();
-        glEnable (GL_DEPTH_TEST);
-
         glViewport(0, 0, viewport_width, viewport_height);
-//        glDepthRange(-100, 100);
 
         GLdouble os = 10;   // ortho_size
-//        glOrtho(-os, os, -os, os, -os, os);
         _print_sys_info();
-
-//        if (_surface = )
-
-
-//        models.push_back(Model().load("./res/plane.model", Texture().data("./res/cottage.pvr")));
-////        vaos.push_back(VAO().data(VBO().data(_triangle_points), VBO().data(_triangle_colors), VBO().data(_triangle_texcoords, 2)));
-//        models.push_back(Model().load("./res/warehouse.model", Texture().data("./res/cottage.pvr")));
-////        models.push_back(Model(
-////                             VAO().data(VBO().data(_square_points), VBO().data(_square_colors), VBO().data(_square_texcoords, 2))));
-//        models.push_back(Model().load("./res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")));
-
-//        models.push_back(Model().load("./res/lightmaps/room.model", Texture().data("./res/lightmaps/lightmap.pvr")));
-//        models.push_back(Model().load("./res/cube.model", Texture().data("./res/pvr_tex_tool_icon.pvr")));
-////        models.push_back(Model().load("./res/strange.model", Texture().data("./res/axes.pvr")));
-//        models.push_back(Model().load("./res/axes.model", Texture().data("./res/axes.pvr")));
-//        models.push_back(Model().load("./res/axes-cube.model", Texture().data("./res/axes-cube.pvr")));
-//        models.push_back(Model().load("./res/level/Flower.model", Texture().data("./res/lightmaps/lightmap.pvr")));
-////        models.push_back(Model().load("./res/landscape.model", Texture().data("./res/lightmaps/lightmap.pvr")));
-//        model_environment.load("./res/lightmaps/environment.model", Texture().data("./res/level/textures/nebula.pvr"));
-
-
-//        texture.data("../client/res/texture.png");
-
-//        textures.push_back();
-//        textures.push_back();
-//        textures.push_back();
-////        textures.push_back(Texture().data("./res/cottage.pvr"));
-////        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
-//        textures.push_back(Texture().data("./res/cottage.pvr"));
-//        textures.push_back(Texture().data("./res/cottage.pvr"));
-//        textures.push_back();
-//        textures.push_back();
-//        textures.push_back(Texture().data("./res/pvr_tex_tool_icon.pvr"));
+        glEnable(GL_DEPTH_TEST);
         level.init();
+        level.player->camera.turn_up(0.5 * M_PI);
+        level.player->camera.go(1.001);  // TODO: remove this ducktape
     }
 
 //    uint vbo_random_points, vao_random_points;
@@ -182,6 +145,8 @@ public:
 
 
         bool keys_pressed[SDL_NUM_SCANCODES];
+        bool is_shift_pressed = false;
+        bool is_ctrl_pressed = false;
         for (int i = 0; i < SDL_NUM_SCANCODES; i++) keys_pressed[i] = false;
 
         float s=1.0;
@@ -194,19 +159,21 @@ public:
             tick_time = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(timer::now() - frame_start).count()) / 1000000000.0 ;
             frame_start = timer::now();
 
-            fps_counter.measure();
+            fps_counter.begin();
 
-            glEnable(GL_DEPTH_TEST);
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //            models[i_active_level].draw();
-            level.scene.move_colliding();
+//            level.scene._gravity_pass();
+//            level.scene._move_colliding();
+            level.scene.integrate();
             level.scene.render();
 
 
             // camera navigation
             {
                 Vec3 dir;
-                float moving_speed = 2 * tick_time;
+                float moving_speed = tick_time * (is_ctrl_pressed?6*2:6);
                 if (keys_pressed[SDL_SCANCODE_W]){
                     dir += Vec3(0, 0, -moving_speed);
                     level.player->camera.go(moving_speed);
@@ -231,13 +198,16 @@ public:
             // --- camera navigation
 
 
-            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_CULL_FACE);
+            glFrontFace(GL_CCW);
+            glCullFace(GL_BACK);
+
+            fps_counter.end();
             SDL_GL_SwapWindow(_window);
             SDL_Delay(12);
 
 //            SDL_SetCursor()
 
-            bool skip_warp = 0;
             while( SDL_PollEvent( &event ) ){
 
                 if (event.type == SDL_KEYDOWN){
@@ -246,6 +216,9 @@ public:
                     if (event.key.keysym.sym == SDLK_ESCAPE){
                         return;
                     }
+                    is_shift_pressed = event.key.keysym.mod & KMOD_SHIFT;
+                    is_ctrl_pressed = event.key.keysym.mod & KMOD_CTRL;
+
 //                    else if (event.key.keysym.sym == SDLK_1){
 //                        i_active_level = 0;
 //                    } else if (event.key.keysym.sym == SDLK_2){
@@ -274,10 +247,6 @@ public:
                 }
 
                 if (event.type == SDL_MOUSEMOTION){
-                    if (skip_warp > 0){
-                        skip_warp -= 1;
-                        continue;
-                    }
                     Sint32 x = event.motion.x, y = event.motion.y;
 
                     float deltaOY = static_cast<float>(event.motion.xrel) * 0.01;
@@ -291,7 +260,6 @@ public:
 //                    angleOY += ;
 //                    printf("xrel: %3d, yrel: %3d\n", event.motion.xrel, event.motion.yrel);
                     if (x < viewport_width * 0.1 || x > viewport_width * 0.9 || y < viewport_height * 0.1 || y > viewport_height * 0.9 ){
-//                        skip_warp += 20;
                         SDL_WarpMouseInWindow(_window, viewport_width / 2, viewport_height / 2);
                         while(SDL_PollEvent( &event ));
 

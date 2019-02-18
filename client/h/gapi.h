@@ -12,6 +12,7 @@ class MyIllegalStateException;
 class MySDLException;
 class MyShaderException;
 class Program;
+class Model;
 
 #include "fpscounter.h"
 #include "exceptions.h"

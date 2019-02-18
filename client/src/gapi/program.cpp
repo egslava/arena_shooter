@@ -131,6 +131,17 @@ void Program::use(const Camera &camera){
     glUniform1i(loc_tex0, 0);
 }
 
+void Program::set_color(const Vec3 &color) {
+    GLint loc_mat_color = glGetUniformLocation(_program, "mat_color");
+#ifndef NDEBUG
+    if (loc_mat_color < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
+#endif
+
+
+    GLfloat color4f[4];
+    color.to_f4(color4f);
+    glUniform4fv(loc_mat_color, 1, color4f);
+}
 
 //void Shader::set_texture(const char *name, int uniform_location)
 //{

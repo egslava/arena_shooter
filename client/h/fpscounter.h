@@ -1,10 +1,14 @@
 #pragma once
 
-
+#include <stack>
+#include <deque>
 struct FPSCounter {
-    using timer = std::chrono::high_resolution_clock;
-    int i_frame = 0;
-    timer::time_point fps_start = timer::now();
+    std::deque<float> runs_s;
 
-    void measure();
+    using timer = std::chrono::high_resolution_clock;
+    timer::time_point fps_start = timer::now();
+    timer::time_point last_print_time = timer::now();
+
+    void begin();
+    void end();
 };

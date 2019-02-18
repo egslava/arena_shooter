@@ -1,6 +1,12 @@
 #include "scene/model.h"
 #include "gapi/loaders/mymodel.h"
 
+Model &&Model::color(const Vec3 color)
+{
+    this->_color = color;
+    return static_cast<Model&&>(*this);
+}
+
 Model&& Model::load(const char *filename, Texture &&tex) {
     MyModel::VBOs vbos = MyModel::load(filename);
 

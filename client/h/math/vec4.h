@@ -7,6 +7,13 @@ public:
     float _x, _y, _z, _w;
     Vec3(float x=0, float y=0, float z=0, float w=1): _x(x), _y(y), _z(z), _w(w){}
 
+    void to_f4(float* out) const {
+        out[0] = _x;
+        out[1] = _y;
+        out[2] = _z;
+        out[3] = _w;
+    }
+
     bool eqXYZ(const Vec3 &another) const {
         // this method is used in tests only, please, use a comparison with Epsilon in other cases
         return  fabs((*this)(0) - another(0) ) < epsilon &&
@@ -141,6 +148,15 @@ public:
 
     Vec3 normed() const{
         return *this * (1.f/len3());
+    }
+
+    /** If the vector is a color in RGBA format, then it
+     *  normalizes its RGB components and keeps A the same
+     */
+    Vec3 bright_rgb(const float brightness = 1.0f) const {
+        Vec3 result = this->xyz(0).normed() * brightness;
+        result._w = this->_w;
+        return result;
     }
 
     static const Vec3 OX, OY, OZ;
