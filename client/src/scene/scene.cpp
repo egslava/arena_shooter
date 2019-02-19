@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "scene/scene.h"
 #include "math/vec4.h"
 
@@ -60,6 +61,15 @@ void Scene::integrate()
         this->_move_colliding();
     }
 }
+
+bool Scene::wireframe() const
+{
+    GLint polygonMode[2];
+    glGetIntegerv(GL_POLYGON_MODE, polygonMode);
+    return polygonMode[0] == GL_LINE;
+}
+
+void Scene::wireframe(bool wireframe) const { glPolygonMode( GL_FRONT_AND_BACK, wireframe?GL_LINE : GL_FILL ); }
 
 void Scene::_gravity_pass(double dt)
 {
@@ -125,7 +135,6 @@ void Scene::render(){
     program.use(_camera->camera);
 
     for (const SPNode &node : nodes){
-
         if (in_frustum(node)){
             program.set_color(node->model._color);
             node->model.draw(); // scene.render(node);

@@ -10,6 +10,7 @@
 
    getting-started
    working-with-resources
+   graphics-debugging
 
 
 .. Comment

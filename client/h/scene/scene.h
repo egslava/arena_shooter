@@ -85,6 +85,8 @@ struct Scene {
     }
 
     void integrate();
+    bool wireframe() const;
+    void wireframe(bool wireframe) const;
     void _gravity_pass(double dt);
     void _move_colliding();
     void render();

@@ -52,7 +52,8 @@ const char *fragment_shader_code = ""
 //"   float light_cam_bright = min(1, abs(dot(w_normal, w_normal)) / pow(max(1, distance(w_pos, w_camera)), 2.0));\n"
 
 //"   FragColor = vec4(1,1,1, 1)*light_cam_bright;\n"
-"    FragColor = 0.5 * light_cam_bright*mat_color + texture(texture0, fragTexCoord);\n"
+"    vec4 tex_color = texture(texture0, fragTexCoord);\n"
+"    FragColor = vec4(0.5 * (light_cam_bright*mat_color).rgb + tex_color.rgb, tex_color.w);\n"
 //"    FragColor = texture(texture0, fragTexCoord);\n"
 "}\n";
 

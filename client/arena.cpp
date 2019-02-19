@@ -49,6 +49,7 @@ struct Level {
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
         scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb()))});
         scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_001.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
 
         player = make_shared<Node>();
         player->name = "Player";
@@ -121,6 +122,8 @@ public:
         glewInit();
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glViewport(0, 0, viewport_width, viewport_height);
 
@@ -130,6 +133,7 @@ public:
         level.init();
         level.player->camera.turn_up(0.5 * M_PI);
         level.player->camera.go(1.001);  // TODO: remove this ducktape
+        level.player->camera.turn_up(-1. * M_PI);
     }
 
 //    uint vbo_random_points, vao_random_points;
@@ -215,6 +219,9 @@ public:
 
                     if (event.key.keysym.sym == SDLK_ESCAPE){
                         return;
+                    } else if (event.key.keysym.scancode == SDL_SCANCODE_Z) {
+                        bool is_wireframe = level.scene.wireframe();
+                        level.scene.wireframe(!is_wireframe);
                     }
                     is_shift_pressed = event.key.keysym.mod & KMOD_SHIFT;
                     is_ctrl_pressed = event.key.keysym.mod & KMOD_CTRL;
