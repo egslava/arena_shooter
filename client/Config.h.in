@@ -2,5 +2,6 @@
 
 #define Arena_VERSION_MAJOR @Arena_VERSION_MAJOR@
 #define Arena_VERSION_MINOR @Arena_VERSION_MINOR@
+#cmakedefine RUN_TESTS
 // #cmakedefine HAVE_LOG
 // #cmakedefine USE_MYMATH

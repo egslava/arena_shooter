@@ -1,4 +1,4 @@
-#include "gapi.h"
+#include "gapi/gapi.h"
 #include "math/matrix.h"
 
 Program::Program(Program &&that){
@@ -95,7 +95,7 @@ float angle = 0;
 
 #include <math.h>
 
-void Program::use(const Camera &camera){
+void Program::use(const Camera &camera, const Vec3 &ambient){
 
 //    m *= 0.5;
 //    m.set_rot_y(angle);
@@ -125,6 +125,16 @@ void Program::use(const Camera &camera){
     if (loc_mat_camera < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
 #endif
     glUniformMatrix4fv(loc_mat_camera, 1, GL_FALSE, camera.getMatWorldToCamera().T()._data);
+
+
+
+    GLint loc_ambient = glGetUniformLocation(_program, "ambient_color");
+#ifndef NDEBUG
+    if (loc_mat_camera < 0) throw MyIllegalStateException("glGetUniformLocation returns -1 for ambient_color");
+#endif
+    GLfloat ambient_color[4];
+    ambient.to_f4(ambient_color);
+    glUniform4fv(loc_ambient, 1, ambient_color);
 
 
     GLint loc_tex0 = glGetUniformLocation(_program, "texture0");

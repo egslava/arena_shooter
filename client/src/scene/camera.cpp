@@ -1,4 +1,5 @@
 #include "scene/camera.h"
+#include "Config.h"
 #include <math.h>
 
 //Mat4x4 Camera::getMat() const
@@ -87,7 +88,7 @@ void Camera::stride(float distance_right) {
 
 
 
-#ifndef NDEBUG
+#ifdef RUN_TESTS
 #include <stdio.h>
 #include <assert.h>
 

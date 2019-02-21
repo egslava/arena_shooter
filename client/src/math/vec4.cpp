@@ -1,11 +1,12 @@
 //#include "math/vec4.h"
 #include "math/package.h"
+#include "Config.h"
 
 const Vec3 Vec3::OX(1, 0, 0, 1);
 const Vec3 Vec3::OY(0, 1, 0, 1);
 const Vec3 Vec3::OZ(0, 0, 1, 1);
 
-#ifndef NDEBUG
+#ifdef RUN_TESTS
 namespace vec4_tests{
 #include <assert.h>
 int test_baseops(){

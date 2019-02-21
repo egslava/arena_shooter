@@ -20,9 +20,8 @@
 #include <exception>
 #include <vector>
 
-#include "gapi.h"
+#include "gapi/gapi.h"
 #include "scene/camera.h"
-#include "scene/model.h"
 #include "scene/scene.h"
 //#include <GL/glu.h>
 
@@ -45,9 +44,9 @@ struct Level {
         scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")/*, Color(WHITE)*/))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
         scene.nodes.emplace_back(new Node{"Nebula", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")/*, Color(BLACK)*/))});
-        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb()))});
+        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(3)))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
-        scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb()))});
+        scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
         scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_001.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
         scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
 
@@ -65,7 +64,7 @@ struct Level {
 class MySDLApp {
     SDL_Window* _window;
     const int viewport_width = 640*3;
-    const int viewport_height = 480*3;
+    const int viewport_height = 480*2;
 
     SDL_GLContext _gl_context;
     Level level;
@@ -221,6 +220,11 @@ public:
                         return;
                     } else if (event.key.keysym.scancode == SDL_SCANCODE_Z) {
                         bool is_wireframe = level.scene.wireframe();
+                        if (is_wireframe){
+                            level.scene.ambient_color = Vec3(0, 0, 0);
+                        } else {
+                            level.scene.ambient_color = Vec3(1,1,1).bright_rgb(0.33);
+                        }
                         level.scene.wireframe(!is_wireframe);
                     }
                     is_shift_pressed = event.key.keysym.mod & KMOD_SHIFT;
@@ -329,11 +333,11 @@ struct BinFile{
     int i_zero=0, i_one=1, i_two=2;
 };
 
-#include "gapi/loaders/pvr.h"
+//#include "gapi/loaders/pvr.h"
 
 //#define SDL_MAIN_HANDLED
 
-#include "math/matrix.h"
+//#include "math/matrix.h"
 int main (int argc, char *argv[]){
 
 //    Mat4x4 i1 = Mat4x4::I;

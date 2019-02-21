@@ -40,6 +40,7 @@ const char *fragment_shader_code = ""
 "uniform vec4 mat_color;\n"
 "uniform mat4 camera;\n"
 "uniform sampler2D texture0;\n"
+"uniform vec4 ambient_color;\n"
 "\n"
 "void main()\n"
 "{\n"
@@ -53,7 +54,7 @@ const char *fragment_shader_code = ""
 
 //"   FragColor = vec4(1,1,1, 1)*light_cam_bright;\n"
 "    vec4 tex_color = texture(texture0, fragTexCoord);\n"
-"    FragColor = vec4(0.5 * (light_cam_bright*mat_color).rgb + tex_color.rgb, tex_color.w);\n"
+"    FragColor = vec4(0.5 * (light_cam_bright*mat_color).rgb + tex_color.rgb, tex_color.w) + ambient_color;\n"
 //"    FragColor = texture(texture0, fragTexCoord);\n"
 "}\n";
 

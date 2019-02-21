@@ -291,7 +291,7 @@ target_include_directories(Arena PUBLIC "./h")
 target_sources(Arena PUBLIC ${source_files} )
 target_link_libraries(Arena ${EXTRA_LIBS})
 
-option (USE_MYMATH "Use tutorial provided math implementation" ON)
+option (RUN_TESTS "Run all the test when the app starts app. Useful for debugging. " ON)
 
 install (TARGETS Arena DESTINATION bin)
 #install (FILES "${PROJECT_BINARY_DIR}/Config.h" DESTINATION include)

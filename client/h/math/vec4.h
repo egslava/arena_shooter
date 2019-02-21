@@ -142,6 +142,15 @@ public:
         );
     }
 
+    Vec3 xy(const float z=0.0, const float w=1.0) const{
+        return Vec3 (
+                    this->_x,
+                    this->_y,
+                    z,
+                    w
+        );
+    }
+
     float len3() const{
         return sqrt(dot3(*this) );
     }

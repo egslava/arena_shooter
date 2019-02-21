@@ -1,5 +1,4 @@
-#include "scene/model.h"
-#include "gapi/loaders/mymodel.h"
+#include "gapi/gapi.h"
 
 Model &&Model::color(const Vec3 color)
 {
@@ -12,6 +11,16 @@ Model&& Model::load(const char *filename, Texture &&tex) {
 
     VAO&& result = this->_vao.data(VBO().data(vbos.pos), VBO().data(vbos.nor), VBO().data(vbos.tex, 2));
 
+    this->_fill_triangles(vbos);
+    MyModel::free(vbos);
+
+    this->_tex = std::move(tex);
+    return (Model&&)*this;
+}
+
+void Model::_fill_triangles(const MyModel::VBOs &vbos)
+{
+    this->_triangles.resize(0);
     this->_triangles.reserve(vbos.pos.size() / 9);
 
     for (int i = 0; i < vbos.pos.size(); i += 9){
@@ -20,10 +29,6 @@ Model&& Model::load(const char *filename, Texture &&tex) {
                                       Vec3(vbos.pos[i+3], vbos.pos[i+4], vbos.pos[i+5], 1),
                                       Vec3(vbos.pos[i+6], vbos.pos[i+7], vbos.pos[i+8], 1));
     }
-    MyModel::free(vbos);
-
-    this->_tex = std::move(tex);
-    return (Model&&)*this;
 }
 
 void Model::draw()

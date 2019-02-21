@@ -1,4 +1,4 @@
-#include "gapi.h"
+#include "gapi/gapi.h"
 
 #include "gapi/loaders/pvr.h"
 #include <memory>

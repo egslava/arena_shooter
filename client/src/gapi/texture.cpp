@@ -3,7 +3,7 @@
 
 #include "gapi/loaders/pvr.h"
 
-#include "gapi.h"
+#include "gapi/gapi.h"
 
 
 void Texture::_gen(){

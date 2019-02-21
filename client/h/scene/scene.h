@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "scene/model.h"
+#include "gapi/gapi.h"
 #include "scene/camera.h"
 #include <vector>
 #include <memory>
@@ -10,8 +10,8 @@
 
 using namespace std;
 
-/** Colliding objects are moved only if both objects are RIGID */
 
+/** Colliding objects are moved only if both objects are RIGID */
 struct Node {
     enum class PhysFlags: int {
         // GHOST - totally nothing, we can walk through such object
@@ -84,6 +84,8 @@ struct Scene {
         return true;
     }
 
+    Model _bsphere;
+    bool _boundings = true;  // should render bounding boxes/spheres/so on?
     void integrate();
     bool wireframe() const;
     void wireframe(bool wireframe) const;
@@ -91,6 +93,7 @@ struct Scene {
     void _move_colliding();
     void render();
 
+    Vec3 ambient_color;
     SPNodes nodes;  // but models should have their bounding spheres and so on
 };
 

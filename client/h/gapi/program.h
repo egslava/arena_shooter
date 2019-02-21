@@ -19,7 +19,7 @@ public:
     void link(Shader &&vertex, Shader &&fragment);
     void transform(const float transform, float tx, float ty, float tz, float sx, float sy, float sz);
 
-    void use(const Camera &camera);
+    void use(const Camera &camera, const Vec3 &ambient);
     void set_color(const Vec3 &color);
 
 //    void bind(){

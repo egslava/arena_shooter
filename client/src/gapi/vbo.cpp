@@ -1,4 +1,4 @@
-#include "gapi.h"
+#include "gapi/gapi.h"
 
 void VBO::_gen(){
     if (_vbo != 0) delete_();

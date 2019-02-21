@@ -1,4 +1,5 @@
 #include "math/geom.h"
+#include "Config.h"
 
 Plane::Plane(const Vec3 &A, const Vec3 &B, const Vec3 &C) {
     /* The plane is defined by the equation: Ax + By + Cz + D = 0
@@ -16,9 +17,15 @@ Plane::Plane(const Vec3 &A, const Vec3 &B, const Vec3 &C) {
     this->a._w =-A.dot3(this->a);
 }
 
+/** Can be negative, depends on a side of the plane*/
 float Plane::distance_to(const Vec3 &point) const
 {
     return a.dot4(point.xyz(1)) / a.len3();
+}
+
+Vec3 Plane::closest(const Vec3 &point) const
+{
+    return (point - this->a.xyz(0).normed() * this->distance_to(point));
 }
 
 Line::Line(const Vec3 &from, const Vec3 &to) {
@@ -28,6 +35,57 @@ Line::Line(const Vec3 &from, const Vec3 &to) {
 
 Vec3 Line::at(float parameter) const {
     return c * parameter + s;
+}
+
+float Line::at(const Vec3 &point) const
+{
+    /*   _    _   _
+         y = pc + s. Thus, we can take any of the equations, for instance:
+                                        s  -  y
+         y  = pc  + s   , thus           x     x
+          x     x    x          p=     ----------
+                                           c
+                                            x
+        But we need to ensure that the component makes sense.
+    */
+    if (fabs(this->c._x) >= epsilon)
+        return (point._x - this->s._x) / this->c._x;
+    if (fabs(this->c._y) >= epsilon)
+        return (point._y - this->s._y) / this->c._y;
+    if (fabs(this->c._z) >= epsilon)
+        return (point._z - this->s._z) / this->c._z;
+}
+
+Segment::Segment(const Vec3 &A, const Vec3 &B)
+{
+    this->line = Line(A, B);
+    this->p1 = this->line.at(A);
+    this->p2 = this->line.at(B);
+    if (p1 > p2){
+        float tmp = p1;
+        p1 = p2;
+        p2 = tmp;
+    }
+}
+
+float Segment::closest_p(const Vec3 &point) const
+{
+    float closest_p_on_line = this->line.at(this->line.closest(point));
+    float closest_p_on_segment = fmax(this->p1, fmin(this->p2, closest_p_on_line));  // just clamping
+    return closest_p_on_segment;
+}
+
+Vec3 Segment::closest(const Vec3 &point) const
+{
+    return this->line.at(this->closest_p(point));
+}
+
+Vec3 Line::closest(const Vec3 &point) const
+{
+    Vec3 line_dir = this->c.normed();
+    Vec3 to_point = (point - this->s);
+    Vec3 proj = this->s + line_dir * line_dir.dot3(to_point);
+    return proj;
 }
 
 
@@ -83,25 +141,7 @@ LinePlaneIntersectionResult intersection(const Line &line, const Triangle &tri) 
         return res;
     case res.State::ONE: {
 
-        Vec3 n = tri.n();
-        Plane  BA_plane(tri.B, tri.A, tri.B+n);
-        Plane  CB_plane(tri.C, tri.B, tri.C+n);
-        Plane  AC_plane(tri.A, tri.C, tri.A+n);
-        float d1 = BA_plane.a.dot4((res.pos).xyz(1)),
-              d2 = CB_plane.a.dot4((res.pos).xyz(1)),
-              d3 = AC_plane.a.dot4((res.pos).xyz(1));
-//        float d1 = (res.pos - tri.A).dot3 (tri.B-tri.A),
-//              d2 = (res.pos - tri.B).dot3 (tri.C-tri.B),
-//              d3 = (res.pos - tri.C).dot3 (tri.A-tri.C);
-        if (
-                (d1 > 0 &&
-             d2 > 0 &&
-             d3 > 0)
-//             ||
-//                (d1 < 0 &&
-//               d2 < 0 &&
-//               d3 < 0)
-             ){
+        if (tri.in_prism(res.pos)){
             return res;
         }
         res.state = res.State::NO;
@@ -150,8 +190,183 @@ Vec3 Triangle::n() const{
     return (B-A).cross3(C-B).normed();
 }
 
-#ifndef NDEBUG
+bool Triangle::in_prism(const Vec3 &point) const
+{
+    Vec3 n = this->n();
+    Plane  BA_plane(this->B, this->A, this->B+n);
+    Plane  CB_plane(this->C, this->B, this->C+n);
+    Plane  AC_plane(this->A, this->C, this->A+n);
+    float d1 = BA_plane.a.dot4((point).xyz(1)),
+          d2 = CB_plane.a.dot4((point).xyz(1)),
+          d3 = AC_plane.a.dot4((point).xyz(1));
+    return d1 > 0 && d2 > 0 && d3 > 0;
+}
+
+Vec3 Triangle::closest(const Vec3 &point) const
+{
+    Vec3 closest_to_plane = Plane(this->A, this->B, this->C).closest(point);
+    if (in_prism(closest_to_plane)){
+        return closest_to_plane;
+    }
+    Segment a(this->A, this->B);
+    Segment b(this->B, this->C);
+    Segment c(this->C, this->A);
+    Vec3 p1 = a.closest(point);
+    Vec3 p2 = b.closest(point);
+    Vec3 p3 = c.closest(point);
+    float d1 = (p1 - point).len3();
+    float d2 = (p2 - point).len3();
+    float d3 = (p3 - point).len3();
+
+    if (d1 <= d2 && d1 <= d3){
+        return p1;
+    } else if (d2 <= d1 && d2 <= d3){
+        return p2;
+    } else {
+        return p3;
+    }
+//    sphere_player.C = pos;
+
+//    Line l (pos, pos+tri.n());
+//    LinePlaneIntersectionResult p=intersection(l, tri);
+//    if (p.state != p.State::ONE && !in (sphere_player, tri.A) && !in (sphere_player, tri.B) && !in (sphere_player, tri.C))
+//        continue;
+
+//    float d = static_cast<Plane>(tri).distance_to(pos);
+//    float d2 = static_cast<Plane>(tri).distance_to(pos);
+//    // printf("line: c: %f;%f;%f, s: %f;%f;%f\n", l.c._x, l.c._y, l.c._z, l.s._x, l.s._y, l.s._z);
+//    // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
+//    // printf("triangle. %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f;  %0.2f,%0.2f,%0.2f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
+//    if (fabs(d) <= min_distance && p.state == p.State::ONE){ //&& fabs(d) <= nearest_distance){
+//        float nearest_distance = fabs(d);
+//        //                        res = tri.n() * dir.len3();
+//        //                        res = tri.n() * (tri.n().dot3(dir));
+//        //                        res += tri.n() * (0.15f-fabs(d)) * (d<0?-1:1);
+//        cres += (d<0?-1:1)*tri.n() * (min_distance-fabs(d));
+//        n_collisions ++;
+//    }
+}
+
+bool in(const Sphere &sphere, const Vec3 &point){
+    return (point - sphere.C).len3() < sphere.R;
+}
+
+bool in(const Frustum &frustum, const Vec3 &point){
+    /* */
+    float center_in = 0;
+    for (const Plane &plane : frustum.planes){
+        // counting only negative values
+        center_in += fmin(0, point.dot3(plane.normal()));
+    }
+
+    return fabs(center_in) < epsilon;  // shouldn't count any negative value
+}
+
+bool in(const Frustum &frustum, const Sphere &sphere){
+    /*
+     * Sphere in frustum:
+     *
+     * # if center in frustum
+     * center_in = sum(max(0, dot(sphere.pos, plane.normal)) for plane in frustum ) > 0
+     * if (center_in): return true
+     *
+     * # otherwise a bit more complicated logic
+     * # First of all, we check: does the sphere intersect any plane of frustum
+     * sphere_touches_plane = sum(max(0, distance(sphere.pos, plane) + r) for plane in frustum ) > 0
+     *
+     * But sometimes, it can give false-positives, like this one:
+     * docs-srcs/source/res/bspheres-frustum-culling-bad-case.png
+     *
+     * Thus, we need an additional check: we're going to check, whether the View Frustum is
+     * inside of the sphere:
+     * for point in frustum:
+     *     if distance(point, sphere.pos) < sphere.r:
+     *         return true
+     * return false
+     */
+
+    // 1. obviously
+    if (in(frustum, sphere.C)){
+        return true;
+    }
+
+    // 2. docs-srcs/source/res/bspheres-frustum-culling-bad-case.png
+    // Thanks for the inspiration:
+    // http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
+    for (const Plane &plane : frustum.planes){
+        if (plane.distance_to(sphere.C) < -sphere.R){
+            return false;
+        }
+    }
+
+    for (const Vec3& frustum_point : frustum.points){
+        if (in(sphere, frustum_point)){
+            return true;
+        }
+    }
+    return false;
+}
+
+void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found){
+    Vec3 collision_point = tri.closest(pos);
+    Vec3 col_dir = collision_point - pos;
+    Vec3 normal = tri.n();
+    if (isnan(normal._x) || isnan(normal._y) || isnan(normal._z)){
+        collisions_found = false;
+        return;
+    }
+
+    float d = col_dir.len3();
+    if (d >= min_distance){
+        collisions_found = false;
+        return;
+    }
+
+
+    // backface culling
+    if (col_dir.dot3(normal) > 0){
+        collisions_found = false;
+        return;
+    }
+
+    collisions_found = true;
+    printf("collision: %0.3f, %0.3f, %0.3f.  pos: %0.3f, %0.3f, %0.3f\n",
+           collision_point._x, collision_point._y, collision_point._z,
+           pos._x, pos._y, pos._z);
+    printf("triangle. %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
+    fflush(stdout);
+    // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
+    Vec3 correction = 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));
+
+    if (isnan(correction._x) || isnan(correction._y) || isnan(correction._z) ){
+        throw MyIllegalStateException("NaN!");
+    };
+    pos += correction;
+}
+
+Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
+{
+    constexpr int max_passes = 100;
+//    int n_collisions = 0;
+    for (int i_pass = 0; i_pass < max_passes; i_pass++){
+        bool collisions_found = false;
+        for (const Triangle &tri: mesh){
+            pull_away(tri, min_distance, pos, collisions_found);
+
+            if (collisions_found) continue;
+        }
+
+        if (!collisions_found)break;
+    }
+
+    return pos;
+}
+
+
+#ifdef RUN_TESTS
     #include <assert.h>
+    #include "gapi/gapi.h"
+    #include "gapi/loaders/mymodel.h"
     namespace geom_tests {
 
         Plane ABC(  Vec3(4, -3, -2),
@@ -301,6 +516,150 @@ Vec3 Triangle::n() const{
             assert( fabs(p.distance_to(Vec3(0, 0,  1)) + 1) <= epsilon );
         }
 
+        Frustum frustum = Frustum().init(
+            Vec3(-5.72334, -3.34758, -3.34758), Vec3(-1, -1, -1), Vec3(-5.72334, -3.34758, 3.34758), Vec3(1, -1, 1),
+            Vec3(-5.72334, 3.34758, -3.34758), Vec3(1, 1, -1), Vec3(-5.72334, 3.34758, 3.34758), Vec3(1, 1, 1)
+        );
+
+        void test_sphere_not_in_frustum(){
+            /* I've modelled this situation in Blender first. You can check it here:
+            docs-src/source/res/code-docs/tests/sphere-not-in-frustum.blend */
+            Sphere sphere;
+            sphere.C = Vec3(-11.1052, -10.7348, 5.54151);
+            sphere.R = 6.90636;
+
+            assert (false == in(frustum, sphere));
+        }
+
+        void test_sphere_in_frustum(){
+            /* I've modelled this situation in Blender first. You can check it here:
+            docs-src/source/res/code-docs/tests/sphere-in-frustum.blend */
+            Sphere sphere;
+            sphere.C = Vec3(-9.1052, -8.7348, 5.54151);
+            sphere.R = 6.90636;
+
+            assert (in(frustum, sphere));
+        }
+
+        void test_plane_closest(){
+            Plane plane (Vec3(0,0,0), Vec3(0, 2, 0), Vec3(2, 0, 0));
+            assert (plane.closest(Vec3(2, 2, 0)).eqXYZ(Vec3(2, 2)));
+            assert (plane.closest(Vec3(-1, -1, 0)).eqXYZ(Vec3(-1, -1)));
+            assert (plane.closest(Vec3(-1, -1, 2)).eqXYZ(Vec3(-1, -1)));
+            assert (plane.closest(Vec3(-1, -1, -3)).eqXYZ(Vec3(-1, -1)));
+
+            assert (plane.closest(Vec3(0.5, 0.5, 0)).eqXYZ( Vec3(0.5, 0.5, 0)));
+            Vec3 res = plane.closest(Vec3(0.5, 0.5, 2));
+            assert (res.eqXYZ( Vec3(0.5, 0.5, 0)));
+            assert (plane.closest(Vec3(0.5, 0.5, -3)).eqXYZ(Vec3(0.5, 0.5, 0)));
+        }
+
+        void test_segment_closest(){
+            Vec3 A(0,0), B(0, 2), C(2, 0);
+            Segment a(A, B), b(B, C), c(C, A);
+            Vec3 p(2, 2);
+            assert(a.closest(p).eqXYZ(Vec3(0,2)));
+            assert(b.closest(p).eqXYZ(Vec3(1,1)));
+            assert(c.closest(p).eqXYZ(Vec3(2,0)));
+
+            Vec3 p2(2,2,3);
+            assert(a.closest(p2).eqXYZ(Vec3(0,2)));
+            assert(b.closest(p2).eqXYZ(Vec3(1,1)));
+            assert(c.closest(p2).eqXYZ(Vec3(2,0)));
+
+            Vec3 p3(2,2,-5);
+            assert(a.closest(p3).eqXYZ(Vec3(0,2)));
+            assert(b.closest(p3).eqXYZ(Vec3(1,1)));
+            assert(c.closest(p3).eqXYZ(Vec3(2,0)));
+        }
+
+
+        void test_triangle_closest(){
+            Triangle tri (Vec3(0,0,0), Vec3(0, 2, 0), Vec3(2, 0, 0));
+            assert (tri.closest(Vec3(2, 2, 0)).eqXYZ(Vec3(1, 1, 0)));
+            assert (tri.closest(Vec3(-1, -1, 0)).eqXYZ(Vec3(0, 0, 0)));
+            assert (tri.closest(Vec3(-1, -1, 2)).eqXYZ(Vec3(0, 0, 0)));
+            assert (tri.closest(Vec3(-1, -1, -3)).eqXYZ(Vec3(0, 0, 0)));
+
+            assert (tri.closest(Vec3(0.5, 0.5, 0)).eqXYZ( Vec3(0.5, 0.5, 0)));
+            Vec3 res = tri.closest(Vec3(0.5, 0.5, 2));
+            assert (res.eqXYZ( Vec3(0.5, 0.5, 0)));
+            assert (tri.closest(Vec3(0.5, 0.5, -3)).eqXYZ(Vec3(0.5, 0.5, 0)));
+//            просто создать тестовый треугольник и чекнуть, что возвращаются
+//            корректные результаты (сейчас это не так, т.к. часто вылезают NaN'ы)
+        }
+
+        void test_pull_away_tri(){
+            Triangle tri(Vec3(0,0), Vec3(2,0), Vec3(0,2));
+            bool collisions_found;
+            Vec3 pos(0,0,0);
+            pull_away(tri, 1.0f, pos, collisions_found);
+            assert(collisions_found);
+            assert(pos == Vec3(0,0,1));
+
+            // regression tests
+            Triangle tri2(Vec3(-24.875,2.000,24.875), Vec3(-24.875,2.000,-24.875), Vec3(-24.875,2.000,24.875));
+            Vec3 pos2(-24.878, 1.042, 19.562);
+            pull_away(tri2, 1.1f, pos2, collisions_found);
+            assert(!isnan(pos2._x) && !isnan(pos2._y) && !isnan(pos2._z) );
+
+//            assert
+            //            collision: -24.875;2.000;19.562.
+
+            //collision: -24.875;2.000;19.305.  pos: -23.842;2.154;19.305
+            //triangle. -24.875,2.000,24.875;  -24.875,2.000,-24.875;  -24.875,2.000,24.875
+
+            //collision: 24.875;2.000;23.775.  pos: 23.813;1.732;23.775
+            //triangle. 24.875,2.000,-24.875;  24.875,2.000,24.875;  24.875,2.000,-24.875
+
+            //collision: 24.875;2.000;23.775.  pos: 23.883;1.534;23.775
+            //triangle. 24.875,2.000,-24.875;  24.875,2.000,24.875;  24.875,2.000,-24.875
+        }
+
+        void test_move_collidings(){
+            // regression test. Captured from logs
+            // collision: -24.849;2.000;24.875.  pos: -24.849;0.904;24.808
+
+
+
+            Model cube2x;
+            MyModel::VBOs vbos = MyModel::load("./res/tests/cube2x.model");
+            cube2x._fill_triangles(vbos);
+            MyModel::free(vbos);
+
+            Vec3 res = pull_away(cube2x._triangles, Vec3(0.9, 0.9, 0.9), 2.0);
+            assert(Vec3(0,0,0).eqXYZ(res));
+
+
+//            cube.load("./res/tests/cube2x.model", Texture());
+
+
+//            Triangle tri( Vec3(24.875,2.000,24.875), Vec3(-24.875,2.000,24.875), Vec3(24.875,2.000,24.875) );
+//            Vec3 pos(-24.849, 0.904, 24.808 );
+
+
+//            Vec3 collision_point = tri.closest(pos);
+//            Vec3 col_dir = collision_point - pos;
+//            Vec3 normal = tri.n();
+
+//            float min_distance = 1.1;
+//            float d = col_dir.len3();
+//            assert (d < min_distance);
+//            assert (col_dir.dot3(normal) <= 0);  // backface culling
+
+//            if (fabs(d) <= min_distance){ // && p.state == p.State::ONE){ //&& fabs(d) <= nearest_distance){
+//                float nearest_distance = fabs(d);
+//                //                        res = tri.n() * dir.len3();
+//                //                        res = tri.n() * (tri.n().dot3(dir));
+//                //                        res += tri.n() * (0.15f-fabs(d)) * (d<0?-1:1);
+
+////                     cres += 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));
+//                pos += 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));
+//            }
+
+        }
+
+
         int tests(){
             test_plane();
             test_intersection_line_plane_one();
@@ -313,6 +672,13 @@ Vec3 Triangle::n() const{
 //            test_intersection_line_line_one();
             test_triangle_normal_is_correct();
             test_distance_plane_point();
+            test_sphere_not_in_frustum();
+            test_sphere_in_frustum();
+            test_plane_closest();
+            test_segment_closest();
+            test_triangle_closest();
+            test_pull_away_tri();
+            test_move_collidings();
         }
         int test_results = tests();
     }

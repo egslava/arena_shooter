@@ -14,10 +14,11 @@ class MyShaderException;
 class Program;
 class Model;
 
-#include "fpscounter.h"
-#include "exceptions.h"
-#include "gapi/shader.h"
-#include "gapi/vbo.h"
-#include "gapi/program.h"
-#include "gapi/vao.h"
-#include "gapi/texture.h"
+#include "../fpscounter.h"
+#include "../exceptions.h"
+#include "shader.h"
+#include "vbo.h"
+#include "program.h"
+#include "vao.h"
+#include "texture.h"
+#include "model.h"
