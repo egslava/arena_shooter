@@ -1,4 +1,4 @@
-#include "math/geom.h"
+#include "math/math.h"
 #include "Config.h"
 
 Plane::Plane(const Vec3 &A, const Vec3 &B, const Vec3 &C) {
@@ -247,7 +247,7 @@ Vec3 Triangle::closest(const Vec3 &point) const
 //    }
 }
 
-bool in(const Sphere &sphere, const Vec3 &point){
+bool in(const Ball &sphere, const Vec3 &point){
     return (point - sphere.C).len3() < sphere.R;
 }
 
@@ -262,7 +262,7 @@ bool in(const Frustum &frustum, const Vec3 &point){
     return fabs(center_in) < epsilon;  // shouldn't count any negative value
 }
 
-bool in(const Frustum &frustum, const Sphere &sphere){
+bool in(const Frustum &frustum, const Ball &sphere){
     /*
      * Sphere in frustum:
      *
@@ -330,10 +330,10 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
     }
 
     collisions_found = true;
-    printf("collision: %0.3f, %0.3f, %0.3f.  pos: %0.3f, %0.3f, %0.3f\n",
-           collision_point._x, collision_point._y, collision_point._z,
-           pos._x, pos._y, pos._z);
-    printf("triangle. %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
+    // printf("collision: %0.3f, %0.3f, %0.3f.  pos: %0.3f, %0.3f, %0.3f\n",
+    //       collision_point._x, collision_point._y, collision_point._z,
+    //       pos._x, pos._y, pos._z);
+    // printf("triangle. %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
     fflush(stdout);
     // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
     Vec3 correction = 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));
@@ -524,7 +524,7 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
         void test_sphere_not_in_frustum(){
             /* I've modelled this situation in Blender first. You can check it here:
             docs-src/source/res/code-docs/tests/sphere-not-in-frustum.blend */
-            Sphere sphere;
+            Ball sphere;
             sphere.C = Vec3(-11.1052, -10.7348, 5.54151);
             sphere.R = 6.90636;
 
@@ -534,7 +534,7 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
         void test_sphere_in_frustum(){
             /* I've modelled this situation in Blender first. You can check it here:
             docs-src/source/res/code-docs/tests/sphere-in-frustum.blend */
-            Sphere sphere;
+            Ball sphere;
             sphere.C = Vec3(-9.1052, -8.7348, 5.54151);
             sphere.R = 6.90636;
 

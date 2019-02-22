@@ -1,8 +1,6 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include "math/package.h"
-
 class Mat4x4 {
     Mat4x4(){};
 public:

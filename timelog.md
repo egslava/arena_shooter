@@ -470,6 +470,31 @@ cmake не держит возможность задавать generator expres
 
 Да, практика показала, что на 10 collision pass'ах у меня уже возникают проблемы с производительностью. А персонаж у меня пока только один. Вывод: оптимизации нужны! Срочно за создание BSpheres!
 
+
+21/02/2019
+----------
+App level:
+1. Added wireframe mode
+2. Collisions are nicer: less 'sharp' jumps, though they still are, but I'm satisfied for now.
+
+Code level:
+[+] Frustum Culling: Sphere and Frustum. Intersection detection.
+[+] math: Line segment code, closest points to a Line, Segment, Plane and Triangle.
+[+] debug: bounding spheres, Wireframe mode is on 'z' key. It turns on wireframe mode and add more ambient light.
+[x] RUN_TESTS cmake constant
+[x] A bit more bright scene for debugging (flower)
+[x] Triangles collapsed into a line are not a problem for collision solver now.
+
+
+22/02/2019
+----------
+App:
+[+] Non-final (but bug-free) particle system with Billboard computation on GPU. Still doesn't support texture animation, color interpolation and so on. Just a quad.
+
+Code:
+[+] Reinhard's tonemapping. Commented it out, since didn't really get the point of it.
+[+] Random: max/min, from Ball
+
 Credits:
 Графика:
 # @mrshoor - Alexander Busarov - подсказал мне, почему у меня была перевёрнутая модель в Blender'е, а так же рассказал, что в вершинном шейдере выходная xyzw, z записывает в z-buffer, поэтому у меня z-buffer работал, но отрисовывалась модель неправильно (нужна матрица проекции).
@@ -480,40 +505,3 @@ CMake:
 # @Artalus (Igor Ivanov) и @egorpugin (Egor Pugin). Помогли портировать на Windows, объяснили про Generator Expressions. Сказали, что создать цель: copy-res, которая бы не устаревала постоянно, невозможно.
 @megaxela - Alex Ushanov. Подсказал, как добавить поддиректории в res.
 @DenisKormalev объяснил, что target_sources - это не только .cpp-файлы, а, вообще все зависимости проекта. А давать ли их на вход компилятору или нет - это уже решает CMake, в засимости от используемого языка программирования (должно настраиваться).
-
-
-p1: 𝑐2𝑥(𝑠1𝑦−𝑠2𝑦)−𝑐2𝑦(𝑠1𝑥−𝑠2𝑥)𝑐1𝑥𝑐2𝑦−𝑐1𝑦𝑐2𝑥,
-𝑝2: 𝑐1𝑥(𝑠1𝑦−𝑠2𝑦)−𝑐1𝑦(𝑠1𝑥−𝑠2𝑥)𝑐1𝑥𝑐2𝑦−𝑐1𝑦𝑐2𝑥
-
-
-
-LinePlaneIntersectionResult intersection(const Line &line, const Triangle &tri) {
-    LinePlaneIntersectionResult res = intersection(line, static_cast<Plane>(tri));
-    switch (res.state) {
-    case res.State::MANY:
-//        throw MyNotYetImplementedException("intersection line-triangle MANY");
-        printf("State::MANY\n");
-    case res.State::NO:
-        return res;
-    case res.State::ONE: {
-
-        float d1 = (res.pos - tri.A).dot3 (tri.B-tri.A),
-              d2 = (res.pos - tri.B).dot3 (tri.C-tri.B),
-              d3 = (res.pos - tri.C).dot3 (tri.A-tri.C);
-        if ( (d1 > 0 &&
-             d2 > 0 &&
-             d3 > 0)||(d1 < 0 &&
-                       d2 < 0 &&
-                       d3 < 0)){
-            return res;
-        }
-        res.state = res.State::NO;
-        return res;
-    }
-#ifndef NDEBUG
-    default:
-        throw MyIllegalStateException("Invalid LinePlaneIntersectionResult.state");
-        break;
-#endif
-    }
-}

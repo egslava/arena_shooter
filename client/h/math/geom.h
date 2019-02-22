@@ -2,7 +2,6 @@
 #define GEOM_H
 
 #include <vector>
-#include "math/package.h"
 
 struct LinePlaneIntersectionResult {
     enum class State: int { NO=0, ONE=1, MANY=2};
@@ -152,7 +151,7 @@ struct Triangle {
  * for object in scene:
  *     object.in_frustum = INTERSECTS(object.bsphere, frustum)
  * */
-struct Sphere {
+struct Ball {
     Vec3 C;
     float R;
 };
@@ -195,9 +194,9 @@ inline float distance(const Segment &segment, const Vec3 &point){
 
 
 
-inline bool in(const Sphere &sphere, const Vec3 &point);
+inline bool in(const Ball &sphere, const Vec3 &point);
 inline bool in(const Frustum &frustum, const Vec3 &point);
-inline bool in(const Frustum &frustum, const Sphere &sphere);
+inline bool in(const Frustum &frustum, const Ball &sphere);
 
 void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found);
 Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance);

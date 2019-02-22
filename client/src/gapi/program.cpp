@@ -103,9 +103,9 @@ void Program::use(const Camera &camera, const Vec3 &ambient){
     glUseProgram(_program);
 
     GLint loc_mat_model = glGetUniformLocation(_program, "model");
-#ifndef NDEBUG
-    if (loc_mat_model < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
-#endif
+//#ifndef NDEBUG
+//    if (loc_mat_model < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
+//#endif
     glUniformMatrix4fv(loc_mat_model, 1, GL_FALSE, matModel.T()._data);
 
 
@@ -129,9 +129,9 @@ void Program::use(const Camera &camera, const Vec3 &ambient){
 
 
     GLint loc_ambient = glGetUniformLocation(_program, "ambient_color");
-#ifndef NDEBUG
-    if (loc_mat_camera < 0) throw MyIllegalStateException("glGetUniformLocation returns -1 for ambient_color");
-#endif
+//#ifndef NDEBUG
+//    if (loc_mat_camera < 0) throw MyIllegalStateException("glGetUniformLocation returns -1 for ambient_color");
+//#endif
     GLfloat ambient_color[4];
     ambient.to_f4(ambient_color);
     glUniform4fv(loc_ambient, 1, ambient_color);
@@ -141,11 +141,17 @@ void Program::use(const Camera &camera, const Vec3 &ambient){
     glUniform1i(loc_tex0, 0);
 }
 
+void Program::uniform(const char *name, float value)
+{
+    GLint location = glGetUniformLocation(_program, name);
+    glUniform1f(location, value);
+}
+
 void Program::set_color(const Vec3 &color) {
     GLint loc_mat_color = glGetUniformLocation(_program, "mat_color");
-#ifndef NDEBUG
-    if (loc_mat_color < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
-#endif
+//#ifndef NDEBUG
+//    if (loc_mat_color < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
+//#endif
 
 
     GLfloat color4f[4];

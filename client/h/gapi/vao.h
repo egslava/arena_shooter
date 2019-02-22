@@ -1,6 +1,7 @@
 #pragma once
 
 class VAO {
+    friend class Particles;
     GLuint _vao = 0;
     std::vector<VBO> _vbos;
 

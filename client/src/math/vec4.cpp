@@ -1,5 +1,5 @@
 //#include "math/vec4.h"
-#include "math/package.h"
+#include "math/math.h"
 #include "Config.h"
 
 const Vec3 Vec3::OX(1, 0, 0, 1);

@@ -78,6 +78,7 @@ struct Scene {
 
     SPNode _camera;
     Program program;
+    Particles particles;
 
     void init();
     bool in_frustum(SPNode sp_node){

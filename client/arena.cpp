@@ -57,6 +57,7 @@ struct Level {
         player->camera._pos = Vec3(0, 1, 0);
         scene.nodes.emplace_back(player);
         scene._camera = player;
+
     }
 };
 
@@ -201,7 +202,7 @@ public:
             // --- camera navigation
 
 
-            glEnable(GL_CULL_FACE);
+            glDisable(GL_CULL_FACE);
             glFrontFace(GL_CCW);
             glCullFace(GL_BACK);
 

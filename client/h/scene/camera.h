@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "math/package.h"
+#include "math/math.h"
 
 class Camera{
     Mat4x4 mat = Mat4x4::I;

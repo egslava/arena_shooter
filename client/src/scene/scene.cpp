@@ -52,6 +52,7 @@ void Scene::init(){
     this->_bsphere.load("./res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr"));
 
     program.link(std::move(vertex_shader), std::move(fragment_shader));
+    this->particles.init(100);
 }
 
 void Scene::integrate()
@@ -135,7 +136,7 @@ void Scene::_gravity_pass(double dt)
 void Scene::_move_colliding()
 {
     float min_distance = 1.1;
-    Sphere sphere_player;
+    Ball sphere_player;
     sphere_player.R = min_distance;
 
     for (const auto &node1 : this->nodes){
@@ -179,6 +180,8 @@ void Scene::render(){
             }
         }
     }
+
+    particles.draw(_camera->camera);
 }
 
 Node::Flags operator &(Node::Flags flag1, Node::Flags flag2){

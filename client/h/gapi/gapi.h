@@ -22,3 +22,4 @@ class Model;
 #include "vao.h"
 #include "texture.h"
 #include "model.h"
+#include "particles.h"
