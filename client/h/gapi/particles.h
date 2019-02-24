@@ -28,9 +28,10 @@ struct Emitter {
 
 
 class Particles {
+    static constexpr int _POINTS_PER_PRIMITIVE = 6;
     Emitter emitter;
     VAO _vao;
-//    Texture _tex;
+    Texture _tex;
     std::vector<Particle> particles;
     Program particle_shader;
 

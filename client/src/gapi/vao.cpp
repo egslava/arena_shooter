@@ -1,6 +1,6 @@
 #include "gapi/gapi.h"
 
-#include "gapi/loaders/mymodel.h"
+//#include "gapi/loaders/mymodel.h"
 
 void VAO::_gen(){
     if (_vao != 0) delete_();

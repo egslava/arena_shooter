@@ -64,7 +64,7 @@ struct Level {
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640*3;
+    const int viewport_width = 640*2;
     const int viewport_height = 480*2;
 
     SDL_GLContext _gl_context;
@@ -202,7 +202,7 @@ public:
             // --- camera navigation
 
 
-            glDisable(GL_CULL_FACE);
+            glEnable(GL_CULL_FACE);
             glFrontFace(GL_CCW);
             glCullFace(GL_BACK);
 
