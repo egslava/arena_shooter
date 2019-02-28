@@ -44,11 +44,21 @@ struct Node {
     Flags flags;
     PhysFlags phys;
     Model model;
+
+    bool uses_particles = false;
+    bool particles_initialised = true;
+    Particles particles;
+    void particles_init(const Emitter &emitter, Texture &&texture);
+
     std::vector<Triangle> _transformed_mesh;  // used in case of both RIGID and DYNAMIC
     bool _is_transformed_mesh_dirty;
 //    Sphere bsphere;
     Camera camera;
-    bool visible;  // used to remode/readd nodes, without their actuall adding/removal and memory management
+    bool visible;  // is used to remove/readd nodes, without their actuall adding/removal and memory management
+
+
+    float g_velocity = 0;  // gravity velocity
+    bool _on_ground;
 };
 
 Node::Flags operator & (Node::Flags flag1, Node::Flags flag2);
@@ -74,11 +84,12 @@ struct ElapsedTime {
 };
 
 struct Scene {
+    Scene():ambient_color(0,0,0,0){}
+
     ElapsedTime _elapsed;  // the time between 2 render calls
 
     SPNode _camera;
     Program program;
-    Particles particles;
 
     void init();
     bool in_frustum(SPNode sp_node){
@@ -92,6 +103,7 @@ struct Scene {
     void wireframe(bool wireframe) const;
     void _gravity_pass(double dt);
     void _move_colliding();
+    void _update_particles();
     void render();
 
     Vec3 ambient_color;

@@ -19,15 +19,16 @@ void VAO::delete_(){
     _vao = 0;
 }
 
-VAO &&VAO::data(VBO &&vertex_data, VBO &&normal_data, VBO &&texture_data){
+VAO &&VAO::data(std::vector<VBO> &&vbos){
 
     //        if (_vao != 0) delete_();
     //        glGenVertexArrays(1, &_vao);
     if (_vao == 0) _gen();
-    _vbos.clear();
-    _vbos.push_back(std::move(vertex_data));
-    _vbos.push_back(std::move(normal_data));
-    _vbos.push_back(std::move(texture_data));
+    _vbos = std::move(vbos);
+//    _vbos.clear();
+//    _vbos.push_back(std::move(vertex_data));
+//    _vbos.push_back(std::move(normal_data));
+//    _vbos.push_back(std::move(texture_data));
 
     glBindVertexArray(_vao);
 

@@ -110,7 +110,6 @@ void Program::use(const Camera &camera, const Vec3 &ambient){
 
 
 
-//    Mat4x4 mat_projection = Mat4x4::set_perspective(60.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 100.00f);
     Mat4x4 mat_projection = Mat4x4::set_perspective(90.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 900.00f);
     GLint loc_mat_projection = glGetUniformLocation(_program, "projection");
 #ifndef NDEBUG
@@ -146,6 +145,15 @@ void Program::uniform(const char *name, float value)
     GLint location = glGetUniformLocation(_program, name);
     glUniform1f(location, value);
 }
+
+void Program::uniform(const char *name, const Vec3 &value)
+{
+    GLint location = glGetUniformLocation(_program, name);
+    GLfloat values[4];
+    value.to_f4(values);
+    glUniform4fv(location, 1, values);
+}
+
 
 void Program::set_color(const Vec3 &color) {
     GLint loc_mat_color = glGetUniformLocation(_program, "mat_color");

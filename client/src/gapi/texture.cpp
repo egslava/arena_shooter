@@ -43,6 +43,7 @@ Texture::Texture(Texture &&that){
     _width = that._width;
     _height = that._height;
     _nrChannels = that._nrChannels;
+
     that._gl_id = 0;
 }
 

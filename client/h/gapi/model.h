@@ -14,6 +14,21 @@ public:
     Model(){}
     Model(const Model&) = delete;
     Model(Model &&that) = default;
+    Model &&operator =(Model &&that) {
+        this->_vao = std::move(that._vao);
+        this->_tex = std::move(that._tex);
+        this->_color = that._color;
+        this->_triangles = std::move(that._triangles);
+    }
+//    {
+//        this->_gl_id = that._gl_id;
+//        this->_width = that._width;
+//        this->_height = that._height;
+//        this->_nrChannels = that._nrChannels;
+//        that._gl_id = 0;
+//        return (Texture&&)*this;
+//    }
+
 //    Model(VAO &&vao): _vao(std::move(vao)) {}
 
     Model&& color(const Vec3 color);

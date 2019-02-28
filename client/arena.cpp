@@ -26,6 +26,7 @@
 //#include <GL/glu.h>
 
 #include <math.h>
+#include "math/math.h"
 
 #define SDL_SAFE(code) do { \
     int result = code;\
@@ -36,27 +37,205 @@
 
 struct Level {
     Scene scene;
-    SPNode player;
+    SPNode player, enemy, explosion, smoke, fireball, nebula;
     SPNodes enemies;
 
     void init(){
         scene.init();
-        scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex.pvr")/*, Color(WHITE)*/))});
+        scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex2.pvr")/*, Color(WHITE)*/))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
-        scene.nodes.emplace_back(new Node{"Nebula", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")/*, Color(BLACK)*/))});
+
+        nebula = make_shared<Node>();
+        nebula->name = "Nebula";
+        nebula->phys = Node::PhysFlags::GHOST;
+        nebula->flags = Node::Flags::NONE;
+        nebula->model = std::move(Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")));
+        scene.nodes.emplace_back(nebula);
+
+
         scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(3)))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
+        scene.nodes.emplace_back(new Node{"Roof", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Roof.model", Texture().data("./res/level/textures/TableLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
         scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
-        scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_001.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Big.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Top.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/CrystalBottom.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"BallLight1", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight1.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"BallLight2", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight2.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"BallLight3", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight3.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"BallLight4", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight4.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+
+        scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs1.model", Texture().data("./res/level/textures/stairs_lightmap1.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs2.model", Texture().data("./res/level/textures/stairs_lightmap2.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs3.model", Texture().data("./res/level/textures/stairs_lightmap3.pvr")/*, Color(RED/PINK)*/))});
+        scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
         scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
 
         player = make_shared<Node>();
         player->name = "Player";
         player->flags = Node::Flags::NONE;
         player->phys = Node::PhysFlags::RIGID;
-        player->camera._pos = Vec3(0, 1, 0);
+//        player->camera._pos = Vec3(0, 2, 0);
+
         scene.nodes.emplace_back(player);
         scene._camera = player;
+
+        Emitter enemy_emitter;
+        enemy_emitter.type = EmitterType::FOUNTAIN;
+        enemy_emitter.min_start_angle = -180.0f / 180.0f * M_PI;
+        enemy_emitter.max_start_angle = 180 / 180.0f * M_PI ;
+        enemy_emitter.min_start_angular_velocity = 3;
+        enemy_emitter.max_start_angular_velocity = 4;
+        enemy_emitter.min_end_angular_velocity = 5;
+        enemy_emitter.max_end_angular_velocity = 9;
+
+        enemy_emitter.max_particles = 30;
+        enemy_emitter.min_live_time = 0.7;
+        enemy_emitter.max_live_time = 2.1;
+        enemy_emitter.velocity_range = Ball{Vec3(0, 0, 0), 0.1};
+        enemy_emitter.position_range = 0.05;
+        enemy_emitter.start_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.7), 0.0};
+        enemy_emitter.end_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.0), 0.0};
+//        Particles enemy_particles;
+        enemy = make_shared<Node>();
+        enemy->name = "Enemy";
+        enemy->flags = Node::Flags::NONE;
+        enemy->phys = Node::PhysFlags::GHOST;
+        enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
+        scene.nodes.emplace_back(enemy);
+        enemy->camera._pos = Vec3(0, 5, 3);
+
+
+//        Emitter explosion_emitter;
+//        explosion_emitter.type = EmitterType::EXPLOSION;
+//        explosion_emitter.min_start_angle = -180.0f / M_PI;
+//        explosion_emitter.max_start_angle = 180 / M_PI ;
+//        explosion_emitter.min_start_angular_velocity = 3;
+//        explosion_emitter.max_start_angular_velocity = 4;
+//        explosion_emitter.min_end_angular_velocity = -5;
+//        explosion_emitter.max_end_angular_velocity = 5;
+//        explosion_emitter.position_range = 1.00;
+//        explosion_emitter.min_start_size = 0;
+//        explosion_emitter.max_start_size = 3;
+//        explosion_emitter.min_end_size = 0.0;
+//        explosion_emitter.max_end_size = 0.0;
+//        explosion_emitter.max_particles = 600;
+//        explosion_emitter.max_live_time = 0.7;
+//        explosion_emitter.min_live_time = 0.9;
+//        explosion_emitter.velocity_range = Ball{Vec3(0, 3, 0), 1};
+//        explosion_emitter.gravity = Vec3(0, -2, 0);
+//        explosion_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+//        explosion_emitter.end_color_range = Ball{Vec3(1,0,0, 1), 0.05};
+        Emitter explosion_emitter;
+        explosion_emitter.type = EmitterType::EXPLOSION;
+        explosion_emitter.min_start_angle = -180.0f / M_PI;
+        explosion_emitter.max_start_angle = 180 / M_PI ;
+        explosion_emitter.min_start_angular_velocity = 3;
+        explosion_emitter.max_start_angular_velocity = 4;
+        explosion_emitter.min_end_angular_velocity = -5;
+        explosion_emitter.max_end_angular_velocity = 5;
+        explosion_emitter.position_range = 1.00;
+        explosion_emitter.min_start_size = 0;
+        explosion_emitter.max_start_size = 3;
+        explosion_emitter.min_end_size = 1.0;
+        explosion_emitter.max_end_size = 2.0;
+        explosion_emitter.max_particles = 600;
+        explosion_emitter.max_live_time = 0.7;
+        explosion_emitter.min_live_time = 0.9;
+        explosion_emitter.velocity_range = Ball{Vec3(0, 3, 0), 2};
+        explosion_emitter.gravity = Vec3(0, -1, 0);
+        explosion_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+        explosion_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
+        explosion = make_shared<Node>();
+        explosion->name = "Explosion";
+        explosion->flags = Node::Flags::NONE;
+        explosion->phys = Node::PhysFlags::GHOST;
+        explosion->camera._pos = Vec3(-5, 3, 5);
+        //    this->_tex.data("./res/smokeparticle.pvr");
+        //    this->_tex.data("./res/fireparticle.pvr");
+        //    this->_tex.data("./res/face.pvr");
+        //    this->_tex.data("./res/old-lady.pvr");
+//        explosion->particles.emitter = explosion_emitter;
+        explosion->particles_init(explosion_emitter, Texture().data("./res/smokeparticle.pvr"));
+//        explosion->particles_init(explosion_emitter, Texture().data("./res/fireparticle2.pvr"));
+
+        // avoid updates for fully blown explosions (dead = num_particles)
+        Emitter smoke_emitter;
+        smoke_emitter.type = EmitterType::EXPLOSION;
+        smoke_emitter.min_start_angle = -180.0f / 180.0f * M_PI;
+        smoke_emitter.max_start_angle =  180.0f / 180.0f * M_PI ;
+        smoke_emitter.min_start_angular_velocity = -20;
+        smoke_emitter.max_start_angular_velocity =  20;
+        smoke_emitter.min_end_angular_velocity = 0;
+        smoke_emitter.max_end_angular_velocity = 0;
+        smoke_emitter.position_range = 1.25;
+        smoke_emitter.min_start_size = 0;
+        smoke_emitter.max_start_size = 2;
+        smoke_emitter.min_end_size = 1.0;
+        smoke_emitter.max_end_size = 2.0;
+//        smoke_emitter.min_end_size = 1.0;
+//        smoke_emitter.max_end_size = 1.0;
+        smoke_emitter.max_particles = 600;
+        smoke_emitter.min_live_time = 1.7;
+        smoke_emitter.max_live_time = 2.4;
+        smoke_emitter.velocity_range = Ball{Vec3(0, 0, 0), 6};
+        smoke_emitter.gravity = Vec3(0, 3.8, 0);
+//        smoke_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+        smoke_emitter.start_color_range = Ball{Vec3(0.5, 0.5, 0.5, 0.1), 0.00};
+        smoke_emitter.end_color_range = Ball{Vec3(0.0,0.0,0, 0), 0.00};
+        smoke = make_shared<Node>();
+        smoke->name = "Smoke";
+        smoke->flags = Node::Flags::NONE;
+        smoke->phys = Node::PhysFlags::GHOST;
+        smoke->camera._pos = Vec3(-5, 3, 5);
+        //    this->_tex.data("./res/smokeparticle.pvr");
+        //    this->_tex.data("./res/fireparticle.pvr");
+        //    this->_tex.data("./res/face.pvr");
+        //    this->_tex.data("./res/old-lady.pvr");
+
+//        explosion->particles.emitter = explosion_emitter;
+//        explosion->particles_init(explosion_emitter, Texture().data("./res/smokeparticle.pvr"));
+        smoke->particles_init(smoke_emitter, Texture().data("./res/smokeparticle.pvr"));
+
+
+        Emitter fireball_emitter;
+        fireball_emitter.type = EmitterType::FOUNTAIN;
+        fireball_emitter.min_start_angle = -180.0f / M_PI;
+        fireball_emitter.max_start_angle = 180 / M_PI ;
+        fireball_emitter.min_start_angular_velocity = 3;
+        fireball_emitter.max_start_angular_velocity = 4;
+        fireball_emitter.min_end_angular_velocity = -5;
+        fireball_emitter.max_end_angular_velocity = 5;
+        fireball_emitter.position_range = 0.20 / 4.0f;
+        fireball_emitter.min_start_size = 0 / 4.0f;
+        fireball_emitter.max_start_size = 3 / 4.0f;
+        fireball_emitter.min_end_size = 1.0 / 4.0f;
+        fireball_emitter.max_end_size = 2.0 / 4.0f;
+        fireball_emitter.max_particles = 500;
+        fireball_emitter.max_live_time = 0.7;
+        fireball_emitter.min_live_time = 0.9;
+        fireball_emitter.velocity_range = Ball{Vec3(0, 3 / 4.0f, 0), 2 / 4.0f};
+        fireball_emitter.gravity = Vec3(0, -1, 0);
+        fireball_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+        fireball_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
+        fireball = make_shared<Node>();
+        fireball->name = "Fireball";
+        fireball->flags = Node::Flags::NONE;
+        fireball->phys = Node::PhysFlags::GHOST;
+        fireball->camera._pos = Vec3(-3, 3, 3);
+        //    this->_tex.data("./res/smokeparticle.pvr");
+        //    this->_tex.data("./res/fireparticle.pvr");
+        //    this->_tex.data("./res/face.pvr");
+        //    this->_tex.data("./res/old-lady.pvr");
+//        fireball->particles.emitter = fireball_emitter;
+//        fireball->particles_init(fireball_emitter, Texture().data("./res/smokeparticle.pvr"));
+        fireball->particles_init(fireball_emitter, Texture().data("./res/fireparticle2.pvr"));
+
+
+        scene.nodes.emplace_back(explosion);
+        scene.nodes.emplace_back(smoke);
+
+        scene.nodes.emplace_back(fireball);
 
     }
 };
@@ -132,8 +311,13 @@ public:
         glEnable(GL_DEPTH_TEST);
         level.init();
         level.player->camera.turn_up(0.5 * M_PI);
-        level.player->camera.go(1.001);  // TODO: remove this ducktape
+        level.player->camera.fly(1.001);  // TODO: remove this ducktape
         level.player->camera.turn_up(-1. * M_PI);
+
+        //        player->camera._pos = Vec3(4.22, 3.00, 2.17);
+        level.player->camera._pos = Vec3(3.99, 12.37, 11.91);
+        level.player->camera.rgOX = -0.69;
+        level.player->camera.rgOY =  0.03;
     }
 
 //    uint vbo_random_points, vao_random_points;
@@ -195,12 +379,36 @@ public:
                     level.player->camera.stride(moving_speed);
                 }
 
+                if (keys_pressed[SDL_SCANCODE_UP]){
+                    dir += Vec3(0, 0, -moving_speed);
+                    level.enemy->camera.go(moving_speed);
+                    level.fireball->camera.go(moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_DOWN]){
+                    dir += Vec3(0, 0, moving_speed);
+                    level.enemy->camera.go(-moving_speed);
+                    level.fireball->camera.go(-moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_LEFT]){
+                    dir += Vec3(-moving_speed, 0, 0);
+                    level.enemy->camera.stride(-moving_speed);
+                    level.fireball->camera.stride(-moving_speed);
+                }
+                if (keys_pressed[SDL_SCANCODE_RIGHT]){
+                    dir += Vec3(moving_speed, 0, 0);
+                    level.enemy->camera.stride(moving_speed);
+                    level.fireball->camera.stride(moving_speed);
+                }
+
+                level.nebula->camera.rgOX += 10.0f;
+                level.nebula->camera.rgOY += 10.0f;
+//                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
+
 //                res *= camera.getMatWorldToCamera();
 //                camera._pos += res;
 
             }
             // --- camera navigation
-
 
             glEnable(GL_CULL_FACE);
             glFrontFace(GL_CCW);
@@ -222,11 +430,14 @@ public:
                     } else if (event.key.keysym.scancode == SDL_SCANCODE_Z) {
                         bool is_wireframe = level.scene.wireframe();
                         if (is_wireframe){
-                            level.scene.ambient_color = Vec3(0, 0, 0);
+                            level.scene.ambient_color = Vec3(0, 0, 0, 0);
                         } else {
-                            level.scene.ambient_color = Vec3(1,1,1).bright_rgb(0.33);
+                            level.scene.ambient_color = Vec3(1,1,1, 1).bright_rgb(0.33);
                         }
                         level.scene.wireframe(!is_wireframe);
+                    } else if (event.key.keysym.scancode == SDL_SCANCODE_R){
+                        level.explosion->particles.explode();
+                        level.smoke->particles.explode();
                     }
                     is_shift_pressed = event.key.keysym.mod & KMOD_SHIFT;
                     is_ctrl_pressed = event.key.keysym.mod & KMOD_CTRL;

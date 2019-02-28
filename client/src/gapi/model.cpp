@@ -9,7 +9,12 @@ Model &&Model::color(const Vec3 color)
 Model&& Model::load(const char *filename, Texture &&tex) {
     MyModel::VBOs vbos = MyModel::load(filename);
 
-    VAO&& result = this->_vao.data(VBO().data(vbos.pos), VBO().data(vbos.nor), VBO().data(vbos.tex, 2));
+    std::vector<VBO> gpu_vbos;
+    gpu_vbos.push_back( VBO().data(vbos.pos) );
+    gpu_vbos.push_back( VBO().data(vbos.nor) );
+    gpu_vbos.push_back( VBO().data(vbos.tex, 2) );
+
+    VAO&& result = this->_vao.data(std::move(gpu_vbos));
 
     this->_fill_triangles(vbos);
     MyModel::free(vbos);

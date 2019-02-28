@@ -74,10 +74,23 @@ void Camera::turn_left(float radians) {
 }
 
 #include <stdio.h>
-void Camera::go(float distance) {
+void Camera::fly(float distance) {
     Vec3 cDir(0.f, 0.f, -distance, 1);  // camera's oZ
     Vec3 wDir = this->getMatCameraToWorld() * cDir;  // world's direction
     this->_pos = wDir;
+}
+
+void Camera::go(float distance) {
+    float rgOX = this->rgOX;
+    this->rgOX = 0;
+    fly(distance);
+
+//    Vec3 cDir(0.f, 0.f, -distance, 1);  // camera's oZ
+//    Vec3 wDir = (this->getMatCameraToWorld() * cDir) - this->_pos;  // world's direction
+////    wDir._y = 0;
+//    wDir *= fabs(distance) * 1.0f / wDir.len3();
+//    this->_pos += wDir;
+    this->rgOX = rgOX;
 }
 
 void Camera::stride(float distance_right) {
@@ -120,7 +133,7 @@ float test_doesnt_change_axes(){
     assert ((cam.getMatWorldToCamera() * OZ).eqXYZ(OY));
 
     cam.turn_up(-90. / 180. * M_PI);
-    cam.go(1);  // moved by 1 in -z direction
+    cam.fly(1);  // moved by 1 in -z direction
     assert(cam._pos == Vec3(0, 0, -1));
     assert ((cam.getMatWorldToCamera() * OX).eqXYZ(Vec3(1, 0, 1)));
     assert ((cam.getMatWorldToCamera() * OY).eqXYZ(Vec3(0, 1, 1)));
@@ -138,7 +151,7 @@ float test_doesnt_change_axes(){
 //    assert ((cam.getMatWorldToCamera() * OY).eqXYZ(-OZ));
 //    assert ((cam.getMatWorldToCamera() * OZ).eqXYZ(OY));
 
-    cam.go(1);  // moved by 1 in x direction
+    cam.fly(1);  // moved by 1 in x direction
     assert ((cam._pos == Vec3(1, 0, -1)));
     assert ((cam.getMatWorldToCamera() * Vec3(0,0,0)).eqXYZ(Vec3( 1, 0, 1)));
     assert ((cam.getMatWorldToCamera() * OX).eqXYZ(OX));

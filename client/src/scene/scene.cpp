@@ -52,7 +52,6 @@ void Scene::init(){
     this->_bsphere.load("./res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr"));
 
     program.link(std::move(vertex_shader), std::move(fragment_shader));
-    this->particles.init(100);
 }
 
 void Scene::integrate()
@@ -62,6 +61,21 @@ void Scene::integrate()
     for (int i = 0; i < n_times; i++){
         this->_gravity_pass(_elapsed / n_times);
         this->_move_colliding();
+    }
+
+    this->_update_particles();
+}
+
+void Scene::_update_particles()
+{
+    for (SPNode node : this->nodes){
+        if (!node->uses_particles) continue;
+//        node->particles.emitter.position_range.C = node->camera._pos;
+        if (!node->particles_initialised){
+            node->particles.init(node->camera._pos);
+            node->particles_initialised = true;
+        }
+        node->particles.update(node->camera._pos);
     }
 }
 
@@ -80,7 +94,13 @@ void Scene::_gravity_pass(double dt)
         if (node->phys != Node::PhysFlags::RIGID){
             continue;
         }
-        node->camera._pos += Vec3(0, -60 * dt, 0);
+
+        if (node->_on_ground){
+            node->g_velocity = 0;
+        } else {
+            node->g_velocity += -9.8 * dt * 300;
+        }
+        node->camera._pos += Vec3(0, node->g_velocity * dt, 0);
     }
 }
 
@@ -135,7 +155,7 @@ void Scene::_gravity_pass(double dt)
 
 void Scene::_move_colliding()
 {
-    float min_distance = 1.1;
+    float min_distance = 0.95 * 1.0f;
     Ball sphere_player;
     sphere_player.R = min_distance;
 
@@ -146,7 +166,8 @@ void Scene::_move_colliding()
             continue;  // should never intersect or it just was designed and it's ok!
         if ((node1->flags & Node::Flags::GONE) != Node::Flags::NONE)
             continue;
-        Vec3 pos = node1->camera.getMatCameraToWorld() * Vec3(0, 0, 0);
+        Vec3 pos = node1->camera._pos;
+        node1->_on_ground = false;
 
         for (const auto &node2 : this->nodes){
             if (node1 == node2)
@@ -158,7 +179,7 @@ void Scene::_move_colliding()
 //            if (node2->phys == Node::PhysFlags::SOLID)
 //                continue;
 
-            pos = pull_away(node2->model._triangles, pos, 1.1);
+            pos = pull_away(node2->model._triangles, pos, min_distance, node1->_on_ground);
             node1->camera._pos = pos; //dir + res;
         }
     }
@@ -174,6 +195,8 @@ void Scene::render(){
             program.set_color(node->model._color);
             node->model.draw(); // scene.render(node);
 
+            if (node->uses_particles)
+                node->particles.draw(_camera->camera, this->ambient_color);
             if (this->_boundings){
 //                node->
 //                _bsphere.draw();
@@ -181,9 +204,16 @@ void Scene::render(){
         }
     }
 
-    particles.draw(_camera->camera);
 }
 
 Node::Flags operator &(Node::Flags flag1, Node::Flags flag2){
     return static_cast<Node::Flags>(static_cast<int>(flag1) & static_cast<int>(flag2));
+}
+
+void Node::particles_init(const Emitter &emitter, Texture &&texture)
+{
+    this->uses_particles = true;
+    this->particles_initialised = false;
+    this->particles.emitter = emitter;
+    this->particles._tex = std::move(texture);
 }

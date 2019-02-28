@@ -307,7 +307,7 @@ bool in(const Frustum &frustum, const Ball &sphere){
     return false;
 }
 
-void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found){
+void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found, bool &on_ground){
     Vec3 collision_point = tri.closest(pos);
     Vec3 col_dir = collision_point - pos;
     Vec3 normal = tri.n();
@@ -322,7 +322,6 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
         return;
     }
 
-
     // backface culling
     if (col_dir.dot3(normal) > 0){
         collisions_found = false;
@@ -330,12 +329,17 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
     }
 
     collisions_found = true;
+
+    if (fabsf(normal._y) > fabsf(normal._x) && fabsf(normal._y) > fabsf(normal._z)) {
+        on_ground = true;
+    }
     // printf("collision: %0.3f, %0.3f, %0.3f.  pos: %0.3f, %0.3f, %0.3f\n",
     //       collision_point._x, collision_point._y, collision_point._z,
     //       pos._x, pos._y, pos._z);
     // printf("triangle. %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
     fflush(stdout);
     // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
+
     Vec3 correction = 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));
 
     if (isnan(correction._x) || isnan(correction._y) || isnan(correction._z) ){
@@ -344,14 +348,14 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
     pos += correction;
 }
 
-Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
+Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &on_ground)
 {
-    constexpr int max_passes = 100;
+    constexpr int max_passes = 10;
 //    int n_collisions = 0;
     for (int i_pass = 0; i_pass < max_passes; i_pass++){
         bool collisions_found = false;
         for (const Triangle &tri: mesh){
-            pull_away(tri, min_distance, pos, collisions_found);
+            pull_away(tri, min_distance, pos, collisions_found, on_ground);
 
             if (collisions_found) continue;
         }
@@ -589,18 +593,20 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
 //            корректные результаты (сейчас это не так, т.к. часто вылезают NaN'ы)
         }
 
+        bool on_ground_stub;
         void test_pull_away_tri(){
+
             Triangle tri(Vec3(0,0), Vec3(2,0), Vec3(0,2));
             bool collisions_found;
             Vec3 pos(0,0,0);
-            pull_away(tri, 1.0f, pos, collisions_found);
+            pull_away(tri, 1.0f, pos, collisions_found, on_ground_stub);
             assert(collisions_found);
             assert(pos == Vec3(0,0,1));
 
             // regression tests
             Triangle tri2(Vec3(-24.875,2.000,24.875), Vec3(-24.875,2.000,-24.875), Vec3(-24.875,2.000,24.875));
             Vec3 pos2(-24.878, 1.042, 19.562);
-            pull_away(tri2, 1.1f, pos2, collisions_found);
+            pull_away(tri2, 1.1f, pos2, collisions_found, on_ground_stub);
             assert(!isnan(pos2._x) && !isnan(pos2._y) && !isnan(pos2._z) );
 
 //            assert
@@ -627,7 +633,7 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance)
             cube2x._fill_triangles(vbos);
             MyModel::free(vbos);
 
-            Vec3 res = pull_away(cube2x._triangles, Vec3(0.9, 0.9, 0.9), 2.0);
+            Vec3 res = pull_away(cube2x._triangles, Vec3(0.9, 0.9, 0.9), 2.0, on_ground_stub);
             assert(Vec3(0,0,0).eqXYZ(res));
 
 

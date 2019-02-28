@@ -23,8 +23,14 @@ public:
         that._vao = 0;
     }
 
+    VAO&& operator = (VAO &&that){
+        _vao = that._vao;
+        _vbos = std::move(that._vbos);
+        that._vao = 0;
+    }
 
-    VAO&& data(VBO &&vertex_data, VBO &&normal_data, VBO &&texture_data);
+
+    VAO&& data(std::vector<VBO> &&vbos);
     void bind();
 
     ~VAO();

@@ -38,6 +38,7 @@ const char *fragment_shader_code = ""
 "in vec3 v_cam_pos;\n"
 
 "uniform vec4 mat_color;\n"
+"uniform mat4 mat_model;\n"
 "uniform mat4 camera;\n"
 "uniform sampler2D texture0;\n"
 "uniform vec4 ambient_color;\n"

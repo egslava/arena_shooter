@@ -5,7 +5,6 @@
 
 class Camera{
     Mat4x4 mat = Mat4x4::I;
-    float rgOX=0, rgOY=0;  // rotate around global OX and OY
 
     Mat4x4 rotW2C()const {
         // Please, pay attention, that we rotate THE WORLD, first, around Y, then, around X.
@@ -33,10 +32,13 @@ class Camera{
 
 public:
     Vec3 _pos;
+    float rgOX=0, rgOY=0;  // rotate around global OX and OY
+
     Mat4x4 getMatWorldToCamera() const;
     Mat4x4 getMatCameraToWorld() const;
     void turn_up(float updown);
     void turn_left(float radians);
+    void fly(float distance);
     void go(float distance);
     void stride(float distance_right);
 

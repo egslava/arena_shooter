@@ -9,5 +9,5 @@ Vec3 rand(const Ball &uniform){
                 rand(-uniform.R, uniform.R) + uniform.C._x,
                 rand(-uniform.R, uniform.R) + uniform.C._y,
                 rand(-uniform.R, uniform.R) + uniform.C._z,
-                1);
+                rand(-uniform.R, uniform.R) + uniform.C._w);
 }

@@ -21,6 +21,7 @@ public:
 
     void use(const Camera &camera, const Vec3 &ambient);
     void uniform(const char *name, float value);
+    void uniform(const char *name, const Vec3 &value);
     void set_color(const Vec3 &color);
 
 //    void bind(){
