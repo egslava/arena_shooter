@@ -56,10 +56,10 @@ void Scene::init(){
 
 void Scene::integrate()
 {
-    const float n_times = 1;
+    const float n_times = 3;
 
     for (int i = 0; i < n_times; i++){
-        this->_gravity_pass(_elapsed / n_times);
+        this->_gravity_pass(_elapsed / n_times );
         this->_move_colliding();
     }
 
@@ -75,7 +75,7 @@ void Scene::_update_particles()
             node->particles.init(node->camera._pos);
             node->particles_initialised = true;
         }
-        node->particles.update(node->camera._pos);
+        node->particles.update(node->camera._pos, node->visible);
     }
 }
 
@@ -98,7 +98,7 @@ void Scene::_gravity_pass(double dt)
         if (node->_on_ground){
             node->g_velocity = 0;
         } else {
-            node->g_velocity += -9.8 * dt * 300;
+            node->g_velocity += -9.8 * dt;
         }
         node->camera._pos += Vec3(0, node->g_velocity * dt, 0);
     }
@@ -192,6 +192,8 @@ void Scene::render(){
 
     for (const SPNode &node : nodes){
         if (in_frustum(node)){
+            if (!node->visible) continue;
+
             program.set_color(node->model._color);
             node->model.draw(); // scene.render(node);
 

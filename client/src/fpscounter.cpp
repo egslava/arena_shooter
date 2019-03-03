@@ -22,7 +22,7 @@ void FPSCounter::end()
     if (std::chrono::duration_cast<std::chrono::seconds>(timer::now() - this->last_print_time).count() > 1){
         this->last_print_time = timer::now();
         this->runs_s.clear();
-        fprintf(stdout, "FPS: %f, SPF: %f\n", 1 / static_cast<double>(avg_s), static_cast<double>(avg_s));
-        fflush(stdout);
+//        fprintf(stdout, "FPS: %f, SPF: %f\n", 1 / static_cast<double>(avg_s), static_cast<double>(avg_s));
+//        fflush(stdout);
     }
 }

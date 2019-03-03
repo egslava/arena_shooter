@@ -28,6 +28,8 @@
 #include <math.h>
 #include "math/math.h"
 
+#include "game/bullet.h"
+
 #define SDL_SAFE(code) do { \
     int result = code;\
     if (result == -1){ \
@@ -39,6 +41,7 @@ struct Level {
     Scene scene;
     SPNode player, enemy, explosion, smoke, fireball, nebula;
     SPNodes enemies;
+    Bullets bullet;
 
     void init(){
         scene.init();
@@ -53,9 +56,9 @@ struct Level {
         scene.nodes.emplace_back(nebula);
 
 
-        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(3)))});
+        scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(1)))});
 //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
-        scene.nodes.emplace_back(new Node{"Roof", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Roof.model", Texture().data("./res/level/textures/TableLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
+        scene.nodes.emplace_back(new Node{"Roof", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Roof.model", Texture().data("./res/level/textures/TableLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(1, 1, 1).bright_rgb(1)))});
         scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
         scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Big.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
         scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Top.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
@@ -103,7 +106,7 @@ struct Level {
         enemy->phys = Node::PhysFlags::GHOST;
         enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
         scene.nodes.emplace_back(enemy);
-        enemy->camera._pos = Vec3(0, 5, 3);
+        enemy->camera._pos = Vec3(0, 5, 0);
 
 
 //        Emitter explosion_emitter;
@@ -232,10 +235,12 @@ struct Level {
         fireball->particles_init(fireball_emitter, Texture().data("./res/fireparticle2.pvr"));
 
 
-        scene.nodes.emplace_back(explosion);
-        scene.nodes.emplace_back(smoke);
+//        scene.nodes.emplace_back(explosion);
+//        scene.nodes.emplace_back(smoke);
 
-        scene.nodes.emplace_back(fireball);
+//        scene.nodes.emplace_back(fireball);
+
+        bullet.init(scene);
 
     }
 };
@@ -278,6 +283,7 @@ public:
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
+        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32));
 
@@ -295,7 +301,7 @@ public:
         if (!_gl_context){
             throw MySDLException("Can not create an OpenGL context!");
         }
-        SDL_SAFE(SDL_GL_SetSwapInterval(0));  // vsync
+        SDL_SAFE(SDL_GL_SetSwapInterval(1));  // vsync
         SDL_SAFE(SDL_ShowCursor(SDL_DISABLE));  // vsync
 
         glewInit();
@@ -303,6 +309,9 @@ public:
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable( GL_LINE_SMOOTH );
+        glEnable(GL_MULTISAMPLE);
+
 
         glViewport(0, 0, viewport_width, viewport_height);
 
@@ -354,6 +363,7 @@ public:
 //            models[i_active_level].draw();
 //            level.scene._gravity_pass();
 //            level.scene._move_colliding();
+            level.bullet.update();
             level.scene.integrate();
             level.scene.render();
 
@@ -400,6 +410,13 @@ public:
                     level.fireball->camera.stride(moving_speed);
                 }
 
+                if (keys_pressed[SDL_SCANCODE_SPACE]){
+                    if (level.player->_on_ground) {
+                        level.player->g_velocity = 10;
+                        level.player->_on_ground = false;
+                    }
+                }
+
                 level.nebula->camera.rgOX += 10.0f;
                 level.nebula->camera.rgOY += 10.0f;
 //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
@@ -416,12 +433,15 @@ public:
 
             fps_counter.end();
             SDL_GL_SwapWindow(_window);
-            SDL_Delay(12);
+//            SDL_Delay(12);
 
 //            SDL_SetCursor()
 
             while( SDL_PollEvent( &event ) ){
 
+                if (event.type == SDL_MOUSEBUTTONDOWN){
+                    level.bullet.fire(level.player->camera);
+                }
                 if (event.type == SDL_KEYDOWN){
                     keys_pressed[event.key.keysym.scancode] = true;
 
@@ -438,6 +458,9 @@ public:
                     } else if (event.key.keysym.scancode == SDL_SCANCODE_R){
                         level.explosion->particles.explode();
                         level.smoke->particles.explode();
+
+                    } else if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+
                     }
                     is_shift_pressed = event.key.keysym.mod & KMOD_SHIFT;
                     is_ctrl_pressed = event.key.keysym.mod & KMOD_CTRL;

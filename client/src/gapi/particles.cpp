@@ -262,14 +262,17 @@ void Particles::explode()
     this->should_explode = true;
 }
 
-void Particles::update(const Vec3 &pos)
+void Particles::update(const Vec3 &pos, bool is_visible)
 {
     this->_uniform_emitter_time = emitter.time();
 
     update_particles_state(pos, true);
     this->should_explode = false;
-    this->_particles_to_vectors();
-    this->vectors2vbos();
+
+    if (is_visible){
+        this->_particles_to_vectors();
+        this->vectors2vbos();
+    }
 }
 
 void Particles::vectors2vbos(){

@@ -54,7 +54,7 @@ struct Node {
     bool _is_transformed_mesh_dirty;
 //    Sphere bsphere;
     Camera camera;
-    bool visible;  // is used to remove/readd nodes, without their actuall adding/removal and memory management
+    bool visible = true;  // is used to remove/readd nodes, without their actuall adding/removal and memory management
 
 
     float g_velocity = 0;  // gravity velocity
@@ -78,7 +78,7 @@ struct ElapsedTime {
     double _elapsed = 0;
     void update(){
         this->_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(_Timer::now() - _time_last_update).count();
-        this->_elapsed /= 10e9;
+        this->_elapsed /= 1000000000.0;
         this->_time_last_update = std::chrono::high_resolution_clock::now();
     }
 };

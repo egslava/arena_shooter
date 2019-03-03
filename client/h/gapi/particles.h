@@ -76,7 +76,7 @@ public:
 
 //    Model(VAO &&vao): _vao(std::move(vao)) {}
 
-    void update(const Vec3 &pos);
+    void update(const Vec3 &pos, bool is_visible);
     void draw(const Camera &camera, const Vec3 &ambient_color);
     void vectors2vbos();
 
