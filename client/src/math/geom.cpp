@@ -348,19 +348,23 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
     pos += correction;
 }
 
-Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &on_ground)
+Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &collisions_found, bool &on_ground)
 {
     constexpr int max_passes = 10;
 //    int n_collisions = 0;
+    collisions_found = false;
     for (int i_pass = 0; i_pass < max_passes; i_pass++){
-        bool collisions_found = false;
+        bool still_collisions = false;
         for (const Triangle &tri: mesh){
-            pull_away(tri, min_distance, pos, collisions_found, on_ground);
+            pull_away(tri, min_distance, pos, still_collisions, on_ground);
 
-            if (collisions_found) continue;
+            if (still_collisions) {
+                collisions_found = true;
+                continue;
+            }
         }
 
-        if (!collisions_found)break;
+        if (!still_collisions)break;
     }
 
     return pos;
@@ -593,7 +597,7 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, 
 //            корректные результаты (сейчас это не так, т.к. часто вылезают NaN'ы)
         }
 
-        bool on_ground_stub;
+        bool on_ground_stub, on_collision_found_stub;
         void test_pull_away_tri(){
 
             Triangle tri(Vec3(0,0), Vec3(2,0), Vec3(0,2));
@@ -633,7 +637,7 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, 
             cube2x._fill_triangles(vbos);
             MyModel::free(vbos);
 
-            Vec3 res = pull_away(cube2x._triangles, Vec3(0.9, 0.9, 0.9), 2.0, on_ground_stub);
+            Vec3 res = pull_away(cube2x._triangles, Vec3(0.9, 0.9, 0.9), 2.0, on_collision_found_stub, on_ground_stub);
             assert(Vec3(0,0,0).eqXYZ(res));
 
 

@@ -199,7 +199,7 @@ inline bool in(const Frustum &frustum, const Vec3 &point);
 inline bool in(const Frustum &frustum, const Ball &sphere);
 
 void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found, bool &on_ground);
-Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &on_ground);
+Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &collisions_found, bool &on_ground);
 
 LinePlaneIntersectionResult intersection(const Line &line, const Plane &plane);
 LineLineIntersectionResult intersection(const Line &line1, const Line &line2);

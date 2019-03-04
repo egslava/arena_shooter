@@ -179,7 +179,13 @@ void Scene::_move_colliding()
 //            if (node2->phys == Node::PhysFlags::SOLID)
 //                continue;
 
-            pos = pull_away(node2->model._triangles, pos, min_distance, node1->_on_ground);
+
+            bool collision_found = false;
+            pos = pull_away(node2->model._triangles, pos, min_distance, collision_found, node1->_on_ground);
+
+            if (collision_found){
+                on_collision(node1, node2);
+            }
             node1->camera._pos = pos; //dir + res;
         }
     }

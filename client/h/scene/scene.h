@@ -7,6 +7,7 @@
 #include <memory>
 #include "resources.h"
 #include <chrono>
+#include <functional>
 
 using namespace std;
 
@@ -105,6 +106,8 @@ struct Scene {
     void _move_colliding();
     void _update_particles();
     void render();
+    std::function<void(SPNode, SPNode)> on_collision;
+
 
     Vec3 ambient_color;
     SPNodes nodes;  // but models should have their bounding spheres and so on

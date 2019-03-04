@@ -4,6 +4,8 @@
 #include "scene/scene.h"
 #include "scene/camera.h"
 #include "math/math.h"
+//#include "game/level.h"
+
 
 class Bullet {
     SPNode _node_particles;
@@ -44,4 +46,31 @@ public:
     void fire(const Camera &from);
     void update();
 };
+
+
+
+class Hero{};
+
+class Game {
+    Bullets bullets;
+    Hero  player;
+//    Level level;
+
+    void onStart(){
+//        level.init();
+    }
+
+    void onUpdate(double dt){
+        bullets.update();
+    }
+
+    void onInput(){
+
+    }
+
+    void onCollision(SPNode node1, SPNode node2){
+
+    }
+};
+
 #endif // BULLET_H
