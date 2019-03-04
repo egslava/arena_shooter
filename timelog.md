@@ -529,6 +529,13 @@ Commit:
 [ ] fix size
 [v] emitter shouuld have acceleratoin in uniform. For explosions we need an acceleration, but for enemies - not.
 
+28/02/2019 - 03/03/2019
+-----------------------
+[+] Multisampling
+[+] Jumps 
+[+] Bullets
+
+
 03/03/2019
 ----------
 Итак, пули у меня уже летали, я отправил видео с выстрелами. Но пока нет мобов. Два-три дня я тупил и пытался думать, как же мне сделать поиск пути по карте (для мобов). Варианты из головы:

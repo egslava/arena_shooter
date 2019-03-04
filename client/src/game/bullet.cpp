@@ -106,28 +106,38 @@ double _now(){
 }
 void Bullet::fire(const Camera &from)
 {
-
-    this->_is_exploded = false;
-    this->_node_particles->particles.emitter = this->fireball_emitter;    // stop
-
-//    this->_node_particles->particles.emitter.type = EmitterType::EXPLOSION;    // start
-    this->_node_particles->particles.emitter.type = EmitterType::FOUNTAIN;    // start
-    this->_node_particles->particles.init(this->_pos);
-
-    this->_start_time = _now();
-    this->_last_update_time = this->_start_time;
-
-    this->_node_particles->visible = true;
-
     this->_pos = Vec3(from._pos);
     this->_dir = Vec3(from.getMatCameraToWorld() * Vec3(0, 0, -1)) - this->_pos;
-
+    this->_start_time = _now();
+    this->_last_update_time = this->_start_time;
+    this->_is_exploded = false;
     this->_node_particles->camera._pos = this->_pos;
+
+    this->_node_smoke->visible = false;
+    this->_node_particles->visible = true;
+
+    this->_node_particles->particles.emitter = this->fireball_emitter;    // stop
+    this->_node_smoke->particles.reinit(from._pos);
+
+    this->_node_particles->particles.emitter.type = EmitterType::FOUNTAIN;    // start
+    this->_node_particles->particles.reinit(this->_pos);
+}
+
+void Bullet::_explode()
+{
+    this->_node_particles->particles.emitter = this->explosion_emitter;    // stop
+//    this->_node_particles->particles.reinit(this->_pos);
+    this->_node_particles->particles.explode();
+    this->_node_smoke->visible = true;
+    this->_node_smoke->camera._pos = this->_pos;
+    this->_node_smoke->particles.reinit(this->_pos);
+    this->_node_smoke->particles.explode();
+    this->_is_exploded = true;
 }
 
 bool Bullet::_should_explode()
 {
-    return _now() - this->_start_time > 2;
+    return _now() - this->_start_time > 1.5;
 }
 
 bool Bullet::is_dead() const
@@ -146,12 +156,7 @@ void Bullet::update()
     if (this->_should_explode()){
         if (this->_is_exploded) return;
 
-        this->_node_particles->particles.emitter = this->explosion_emitter;    // stop
-        this->_node_particles->particles.explode();
-        this->_node_smoke->visible = true;
-        this->_node_smoke->camera._pos = this->_pos;
-        this->_node_smoke->particles.explode();
-        this->_is_exploded = true;
+        this->_explode();
         return;
     }
 
@@ -167,6 +172,9 @@ void Bullet::update()
 
 void Bullets::fire(const Camera &from)
 {
+    /* Calls Bullet::fire ;
+     * @brief idx
+     */
     int idx = -1;
     for (int i = 0; i < this->_bullets.size(); i++){
         const Bullet &bullet = this->_bullets[i];
@@ -177,13 +185,20 @@ void Bullets::fire(const Camera &from)
     }
 
     if (idx == -1){
+        printf("Creating a new bullet\n");
+        fflush(stdout);
         Bullet new_one;
         new_one.init(*(this->_scene));
         this->_bullets.push_back(new_one);
         idx = this->_bullets.size() - 1;
     }
 
+    printf("Before fire\n");
+    fflush(stdout);
     this->_bullets[idx].fire(from);
+
+    printf("After fire\n");
+    fflush(stdout);
 }
 
 void Bullets::update()

@@ -22,6 +22,7 @@ class Bullet {
 public:
     void init(Scene &scene);
     void fire(const Camera &from);
+    void _explode();
     void update();
     bool is_dead()const;
 };

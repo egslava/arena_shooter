@@ -248,8 +248,8 @@ struct Level {
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640*2;
-    const int viewport_height = 480*2;
+    const int viewport_width = 640*1.5;
+    const int viewport_height = 480*1.5;
 
     SDL_GLContext _gl_context;
     Level level;
@@ -283,7 +283,7 @@ public:
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
         SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
+//        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
 //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32));
 

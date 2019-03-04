@@ -232,8 +232,6 @@ void Particles::_particles_to_vectors() {
 }
 
 void Particles::init(const Vec3 &pos){
-//    this->_tex = std::move(texture);
-
     particles.resize(emitter.max_particles);
     this->_uniform_emitter_time = emitter.time();
     update_particles_state(pos, false);
@@ -250,6 +248,18 @@ void Particles::init(const Vec3 &pos){
 
     this->_vao.data( std::move(gpu_vbos) );
     _link_programs();
+
+    this->_is_inited = true;
+}
+
+void Particles::reinit(const Vec3 &pos){
+    if (!this->_is_inited) {
+        init(pos);
+        return;
+    }
+
+    this->_uniform_emitter_time = emitter.time();
+    update_particles_state(pos, false);
 }
 
 void Particles::explode()

@@ -70,6 +70,7 @@ class Particles {
     float _uniform_emitter_time;    // time since the Particle system has been created
     int num_dead = 0;  // all particles are active
     bool should_explode = false;  // should explode during this update
+    bool _is_inited = false;
 public:
     Emitter emitter;
     Texture _tex;
@@ -84,6 +85,7 @@ public:
     Particles(const Particles&) = delete;
     Particles(Particles &&that) = default;
     void init(const Vec3 &pos);
+    void reinit(const Vec3 &pos);
 
     void update_particles_state(const Vec3 &position, bool update);
     void explode();
