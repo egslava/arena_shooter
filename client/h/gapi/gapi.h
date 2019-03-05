@@ -13,6 +13,7 @@ class MySDLException;
 class MyShaderException;
 class Program;
 class Model;
+class MySDLApp;
 
 #include "../fpscounter.h"
 #include "../exceptions.h"
@@ -23,3 +24,4 @@ class Model;
 #include "texture.h"
 #include "model.h"
 #include "particles.h"
+#include "wininit.h"

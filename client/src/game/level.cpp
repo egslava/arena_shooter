@@ -72,3 +72,114 @@ void Level::init(){
     bullets.init(scene);
 
 }
+
+void MyCallback::on_mousemove(double dx, double dy){
+    level.player->camera.turn_left(-dy);
+    level.player->camera.turn_up(-dx);
+}
+
+void MyCallback::on_mousewheel(double d){
+    //        s += d / 10.f;
+}
+
+void MyCallback::on_after_init(){
+    level.init();
+    level.player->camera.turn_up(0.5 * M_PI);
+    level.player->camera.fly(1.001);  // TODO: remove this ducktape
+    level.player->camera.turn_up(-1. * M_PI);
+
+    //        player->camera._pos = Vec3(4.22, 3.00, 2.17);
+    level.player->camera._pos = Vec3(3.99, 12.37, 11.91);
+    level.player->camera.rgOX = -0.69;
+    level.player->camera.rgOY =  0.03;
+}
+
+void MyCallback::on_mousedown(){
+    level.bullets.fire(level.player->camera);
+}
+
+void MyCallback::on_keydown(SDL_Scancode scancode){
+    switch (scancode) {
+    case SDLK_ESCAPE: return;
+    case SDL_SCANCODE_Z: {
+        bool is_wireframe = level.scene.wireframe();
+        if (is_wireframe){
+            level.scene.ambient_color = Vec3(0, 0, 0, 0);
+        } else {
+            level.scene.ambient_color = Vec3(1,1,1, 1).bright_rgb(0.33);
+        }
+        level.scene.wireframe(!is_wireframe);
+    } break;
+    case SDL_SCANCODE_R: {
+        //            level.explosion->particles.explode();
+        //            level.smoke->particles.explode();
+    } break;
+    }
+}
+
+void MyCallback::on_tick(double tick_time){
+    level.bullets.update();
+    level.scene.integrate();
+    level.scene.render();
+
+
+    // camera navigation
+    {
+        Vec3 dir;
+        float moving_speed = tick_time * (this->is_ctrl_pressed?6*2:6);
+        if (this->keys_pressed[SDL_SCANCODE_W]){
+            dir += Vec3(0, 0, -moving_speed);
+            level.player->camera.go(moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_S]){
+            dir += Vec3(0, 0, moving_speed);
+            level.player->camera.go(-moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_A]){
+            dir += Vec3(-moving_speed, 0, 0);
+            level.player->camera.stride(-moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_D]){
+            dir += Vec3(moving_speed, 0, 0);
+            level.player->camera.stride(moving_speed);
+        }
+
+        if (this->keys_pressed[SDL_SCANCODE_UP]){
+            dir += Vec3(0, 0, -moving_speed);
+            level.enemy->camera.go(moving_speed);
+            //                    level.fireball->camera.go(moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_DOWN]){
+            dir += Vec3(0, 0, moving_speed);
+            level.enemy->camera.go(-moving_speed);
+            //                    level.fireball->camera.go(-moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_LEFT]){
+            dir += Vec3(-moving_speed, 0, 0);
+            level.enemy->camera.stride(-moving_speed);
+            //                    level.fireball->camera.stride(-moving_speed);
+        }
+        if (this->keys_pressed[SDL_SCANCODE_RIGHT]){
+            dir += Vec3(moving_speed, 0, 0);
+            level.enemy->camera.stride(moving_speed);
+            //                    level.fireball->camera.stride(moving_speed);
+        }
+
+        if (this->keys_pressed[SDL_SCANCODE_SPACE]){
+            if (level.player->_on_ground) {
+                level.player->g_velocity = 10;
+                level.player->_on_ground = false;
+            }
+        }
+
+        level.nebula->camera.rgOX += 10.0f;
+        level.nebula->camera.rgOY += 10.0f;
+        //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
+
+        //                res *= camera.getMatWorldToCamera();
+        //                camera._pos += res;
+
+    }
+    // --- camera navigation
+
+}
