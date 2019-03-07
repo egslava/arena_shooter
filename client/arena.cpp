@@ -77,7 +77,7 @@ int main (int argc, char *argv[]){
 #endif
 
     try {
-        MyCallback callback;
+        MyAppCallback callback;
         MySDLApp app(callback);
         app.loop();
     } catch (MyException &e) {

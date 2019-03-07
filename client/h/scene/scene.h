@@ -15,24 +15,28 @@ using namespace std;
 /** Colliding objects are moved only if both objects are RIGID */
 struct Node {
     enum class PhysFlags: int {
+        PHYS_NONE = 0,
         // GHOST - totally nothing, we can walk through such object
         // and they can walk through us.
         // - MESH never changes.
         // - Model Matrix can be changed/
-        GHOST = 0,
+        GHOST = 1,
 
         // SOLID - ground / walls. They push us away.
         // - MESH never changes
         // - Model Matrix should not be changed, since we calculate collisions
         // based on MESH.
-        SOLID = 1,
+        COLLIDE_STATIC = 2,
 
         // They push each other and are pushed away from SOLIDs. Players / enemies / so on.
         // - MESH never changes since we use Bounding Spheres for collisions
         // - Model Matrix can be changed
-        RIGID = 2
+        COLLIDE_DYNAMIC = 4,
         // SOLID-SOLID - skip, SOLID-RIGID - already have a code. RIGID-SOLID - skip,
         // RIGID-RIGID - push only a half
+
+        PULL_AWAY = 8,
+        GRAVITY = 16,
 
     };
     enum class Flags : int {
@@ -46,6 +50,7 @@ struct Node {
     PhysFlags phys;
     Model model;
 
+    // particles
     bool uses_particles = false;
     bool particles_initialised = true;
     Particles particles;
@@ -53,16 +58,25 @@ struct Node {
 
     std::vector<Triangle> _transformed_mesh;  // used in case of both RIGID and DYNAMIC
     bool _is_transformed_mesh_dirty;
-//    Sphere bsphere;
     Camera camera;
     bool visible = true;  // is used to remove/readd nodes, without their actuall adding/removal and memory management
 
 
     float g_velocity = 0;  // gravity velocity
     bool _on_ground;
+
+//    Ball bsphere;
+    float radius = 0;
+    AABB _aabb;
+    int is_aabb_dirty = 1;
+
+    // UDA: user-defined attributes. Just for comfortable using of this class
+    Uint8 uda_group = 0;
 };
 
 Node::Flags operator & (Node::Flags flag1, Node::Flags flag2);
+Node::PhysFlags operator & (Node::PhysFlags flag1, Node::PhysFlags flag2);
+Node::PhysFlags operator | (Node::PhysFlags flag1, Node::PhysFlags flag2);
 //bool operator  !(Node::Flags flag){ return flag != Node::Flags::NONE; };
 
 
@@ -103,6 +117,7 @@ struct Scene {
     bool wireframe() const;
     void wireframe(bool wireframe) const;
     void _gravity_pass(double dt);
+    void _undirty_aabb();
     void _move_colliding();
     void _update_particles();
     void render();

@@ -159,6 +159,15 @@ public:
         return *this * (1.f/len3());
     }
 
+    Vec3 abs() const {
+        Vec3 result = *this;
+        result._x = fabs(result._x);
+        result._y = fabs(result._y);
+        result._z = fabs(result._z);
+        result._w = fabs(result._w);
+        return result;
+    }
+
     /** If the vector is a color in RGBA format, then it
      *  normalizes its RGB components and keeps A the same
      */

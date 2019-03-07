@@ -55,8 +55,11 @@ void Bullet::init(Scene &scene)
     this->_node_particles = make_shared<Node>();
     this->_node_particles->name = "Fireball";
     this->_node_particles->flags = Node::Flags::NONE;
-    this->_node_particles->phys = Node::PhysFlags::GHOST;
+    this->_node_particles->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
     this->_node_particles->camera._pos = Vec3(-3, 3, 3);
+    this->_node_particles->radius = 0.3;
+
+//    this->_node_particles->
     //    this->_tex.data("./res/smokeparticle.pvr");
     //    this->_tex.data("./res/fireparticle.pvr");
     //    this->_tex.data("./res/face.pvr");
@@ -94,11 +97,15 @@ void Bullet::init(Scene &scene)
     this->_node_smoke = make_shared<Node>();
     this->_node_smoke->name = "Smoke";
     this->_node_smoke->flags = Node::Flags::NONE;
-    this->_node_smoke->phys = Node::PhysFlags::GHOST;
+    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
     this->_node_smoke->camera._pos = Vec3(-5, 3, 5);
     this->_node_smoke->visible = false;
     this->_node_smoke->particles_init(smoke_emitter, Texture().data("./res/smokeparticle.pvr"));
     scene.nodes.emplace_back(this->_node_smoke);
+
+    this->_node_smoke->uda_group = UDA_BULLET;
+    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
+    this->_node_particles->uda_group = UDA_BULLET;
 }
 
 double _now(){
@@ -106,8 +113,11 @@ double _now(){
 }
 void Bullet::fire(const Camera &from)
 {
-    this->_pos = Vec3(from._pos);
+    this->_pos = from._pos;
     this->_dir = Vec3(from.getMatCameraToWorld() * Vec3(0, 0, -1)) - this->_pos;
+
+    this->_pos += this->_dir;
+
     this->_start_time = _now();
     this->_last_update_time = this->_start_time;
     this->_is_exploded = false;
@@ -153,12 +163,12 @@ void Bullet::update()
         return;
     }
 
-    if (this->_should_explode()){
-        if (this->_is_exploded) return;
+//    if (this->_should_explode()){
+//        if (this->_is_exploded) return;
 
-        this->_explode();
-        return;
-    }
+//        this->_explode();
+//        return;
+//    }
 
     double dt = _now() - this->_last_update_time;
     this->_last_update_time = _now();
@@ -169,6 +179,19 @@ void Bullet::update()
 
 }
 
+
+int Bullets::find(SPNode &by)
+{
+    for (int i = 0; i < this->_bullets.size(); i++) {
+        const Bullet &bullet = this->_bullets[i];
+
+        if (bullet._node_particles == by || bullet._node_smoke == by){
+            return i;
+        }
+    }
+    return -1;
+
+}
 
 void Bullets::fire(const Camera &from)
 {
@@ -193,12 +216,12 @@ void Bullets::fire(const Camera &from)
         idx = this->_bullets.size() - 1;
     }
 
-    printf("Before fire\n");
-    fflush(stdout);
+//    printf("Before fire\n");
+//    fflush(stdout);
     this->_bullets[idx].fire(from);
 
-    printf("After fire\n");
-    fflush(stdout);
+//    printf("After fire\n");
+//    fflush(stdout);
 }
 
 void Bullets::update()
@@ -206,4 +229,38 @@ void Bullets::update()
     for(Bullet &bullet : this->_bullets){
         bullet.update();
     }
+}
+
+#include "game/level.h"
+
+void Bullets::on_collision(SPNode &node1, SPNode &node2)
+{
+    bool _1_bullet = node1->uda_group == UDA_BULLET;
+    bool _2_bullet = node2->uda_group == UDA_BULLET;
+
+    // case 1: no bullets
+    if (!_1_bullet && !_2_bullet) return;
+
+    // case 2: only one of them is bullet
+    if (!_1_bullet || !_2_bullet) {
+        int idx = -1;
+        SPNode &another_node = _1_bullet ? node1 : node2;
+        idx = this->find(_1_bullet ? node1 : node2);
+
+//         if (node2->phys == Node::PhysFlags::GHOST) return;
+
+        if (!this->_bullets[idx]._is_exploded){
+            this->_bullets[idx]._explode();
+        }
+
+
+    }
+
+//    // case 3: both bullets
+//    Bullet *bullet_node1 = dynamic_cast<Bullet*>(node1);
+//    Bullet *bullet_node2 = dynamic_cast<Bullet*>(node2);
+
+//    if (bullet_node1 != null){
+//        bullet_node1->
+//    }
 }

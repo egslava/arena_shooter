@@ -37,7 +37,7 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     if (!_gl_context){
         throw MySDLException("Can not create an OpenGL context!");
     }
-    SDL_SAFE(SDL_GL_SetSwapInterval(1));  // vsync
+    SDL_SAFE(SDL_GL_SetSwapInterval(0));  // vsync
     SDL_SAFE(SDL_ShowCursor(SDL_DISABLE));  // vsync
 
     glewInit();

@@ -4,8 +4,12 @@
 #include "scene/scene.h"
 #include "scene/camera.h"
 #include "math/math.h"
-//#include "game/level.h"
 
+struct Bullets;
+
+
+class Bullet;
+class Bullets;
 
 class Bullet {
     SPNode _node_particles;
@@ -21,6 +25,7 @@ class Bullet {
     Emitter explosion_emitter;
     Emitter smoke_emitter;
     bool _should_explode();
+    friend class Bullets;
 public:
     void init(Scene &scene);
     void fire(const Camera &from);
@@ -33,6 +38,7 @@ public:
 class Bullets{
     Scene *_scene;
     std::vector<Bullet> _bullets;
+    int find(SPNode &by);
 public:
     void init(Scene &scene) {
         this->_scene = &scene;
@@ -45,6 +51,7 @@ public:
     };
     void fire(const Camera &from);
     void update();
+    void on_collision(SPNode &node1, SPNode &node2);
 };
 
 
@@ -72,5 +79,8 @@ class Game {
 
     }
 };
+
+
+#include "game/level.h"
 
 #endif // BULLET_H

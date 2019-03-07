@@ -6,8 +6,9 @@ void print_collides(SPNode node1, SPNode node2){
 
 void Level::init(){
     scene.init();
-    scene.on_collision = print_collides;
-    scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex2.pvr")/*, Color(WHITE)*/))});
+    scene.on_collision = [this](SPNode node1, SPNode node2) { this->on_collision(node1, node2); };
+
+    scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex2.pvr")/*, Color(WHITE)*/))});
     //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
 
     nebula = make_shared<Node>();
@@ -18,28 +19,29 @@ void Level::init(){
     scene.nodes.emplace_back(nebula);
 
 
-    scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(1)))});
+    scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(1)))});
     //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/stairs.model", Texture().data("./res/level/textures/stairs.pvr")/*, Color(WHITE)*/))});
-    scene.nodes.emplace_back(new Node{"Roof", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Roof.model", Texture().data("./res/level/textures/TableLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(1, 1, 1).bright_rgb(1)))});
-    scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
-    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Big.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Crystal_Top.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/CrystalBottom.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"BallLight1", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight1.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"BallLight2", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight2.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"BallLight3", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight3.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"BallLight4", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/BallLight4.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Roof", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Roof.model", Texture().data("./res/level/textures/TableLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(1, 1, 1).bright_rgb(1)))});
+    scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
+    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Crystal_Big.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Crystal_Top.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/CrystalBottom.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"BallLight1", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight1.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"BallLight2", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight2.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"BallLight3", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight3.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"BallLight4", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight4.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
 
-    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs1.model", Texture().data("./res/level/textures/stairs_lightmap1.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs2.model", Texture().data("./res/level/textures/stairs_lightmap2.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs3.model", Texture().data("./res/level/textures/stairs_lightmap3.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::SOLID, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs1.model", Texture().data("./res/level/textures/stairs_lightmap1.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs2.model", Texture().data("./res/level/textures/stairs_lightmap2.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs3.model", Texture().data("./res/level/textures/stairs_lightmap3.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
 
     player = make_shared<Node>();
     player->name = "Player";
     player->flags = Node::Flags::NONE;
-    player->phys = Node::PhysFlags::RIGID;
+    player->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::GRAVITY;
+    player->radius = 0.95 * 1.0f;
     //        player->camera._pos = Vec3(0, 2, 0);
 
     scene.nodes.emplace_back(player);
@@ -73,16 +75,22 @@ void Level::init(){
 
 }
 
-void MyCallback::on_mousemove(double dx, double dy){
+void Level::on_collision(SPNode &node1, SPNode &node2)
+{
+    bullets.on_collision(node1, node2);
+//    printf("Collision: %s and %s\n", node1->name, node2->name);
+}
+
+void MyAppCallback::on_mousemove(double dx, double dy){
     level.player->camera.turn_left(-dy);
     level.player->camera.turn_up(-dx);
 }
 
-void MyCallback::on_mousewheel(double d){
+void MyAppCallback::on_mousewheel(double d){
     //        s += d / 10.f;
 }
 
-void MyCallback::on_after_init(){
+void MyAppCallback::on_after_init(){
     level.init();
     level.player->camera.turn_up(0.5 * M_PI);
     level.player->camera.fly(1.001);  // TODO: remove this ducktape
@@ -94,11 +102,11 @@ void MyCallback::on_after_init(){
     level.player->camera.rgOY =  0.03;
 }
 
-void MyCallback::on_mousedown(){
+void MyAppCallback::on_mousedown(){
     level.bullets.fire(level.player->camera);
 }
 
-void MyCallback::on_keydown(SDL_Scancode scancode){
+void MyAppCallback::on_keydown(SDL_Scancode scancode){
     switch (scancode) {
     case SDLK_ESCAPE: return;
     case SDL_SCANCODE_Z: {
@@ -117,7 +125,7 @@ void MyCallback::on_keydown(SDL_Scancode scancode){
     }
 }
 
-void MyCallback::on_tick(double tick_time){
+void MyAppCallback::on_tick(double tick_time){
     level.bullets.update();
     level.scene.integrate();
     level.scene.render();

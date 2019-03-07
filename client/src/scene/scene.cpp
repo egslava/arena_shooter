@@ -56,9 +56,10 @@ void Scene::init(){
 
 void Scene::integrate()
 {
-    const float n_times = 3;
+    const float n_times = 1;
 
     for (int i = 0; i < n_times; i++){
+        this->_undirty_aabb();
         this->_gravity_pass(_elapsed / n_times );
         this->_move_colliding();
     }
@@ -91,7 +92,7 @@ void Scene::wireframe(bool wireframe) const { glPolygonMode( GL_FRONT_AND_BACK, 
 void Scene::_gravity_pass(double dt)
 {
     for (const auto &node : this->nodes){
-        if (node->phys != Node::PhysFlags::RIGID){
+        if ((node->phys & Node::PhysFlags::GRAVITY) == Node::PhysFlags::PHYS_NONE){
             continue;
         }
 
@@ -101,6 +102,24 @@ void Scene::_gravity_pass(double dt)
             node->g_velocity += -9.8 * dt;
         }
         node->camera._pos += Vec3(0, node->g_velocity * dt, 0);
+    }
+}
+
+void Scene::_undirty_aabb() {
+    for (const auto node: this->nodes){
+        bool dynamic = (node->phys & Node::PhysFlags::COLLIDE_DYNAMIC) != Node::PhysFlags::PHYS_NONE;
+        if (node->is_aabb_dirty > 0 || dynamic){
+            if (node->model._triangles.size() > 0)
+                node->_aabb.set(node->model._triangles);
+            else {
+                Ball bsphere;
+                bsphere.C = node->camera._pos;
+                bsphere.R = node->radius;
+
+                node->_aabb.set(bsphere);
+            }
+            node->is_aabb_dirty -= 1;
+        }
     }
 }
 
@@ -155,19 +174,27 @@ void Scene::_gravity_pass(double dt)
 
 void Scene::_move_colliding()
 {
-    float min_distance = 0.95 * 1.0f;
-    Ball sphere_player;
-    sphere_player.R = min_distance;
+    Ball bsphere;
 
     for (const auto &node1 : this->nodes){
         if (node1->phys == Node::PhysFlags::GHOST )
             continue;
-        if (node1->phys == Node::PhysFlags::SOLID)
+        if (node1->phys == Node::PhysFlags::COLLIDE_STATIC)
             continue;  // should never intersect or it just was designed and it's ok!
         if ((node1->flags & Node::Flags::GONE) != Node::Flags::NONE)
             continue;
+        if (!node1->visible)
+            continue;
+
+//        if (node1->uses_particles){
+//            printf("particles_initialised: %s\n", node1->name);
+//        }
+//        float min_distance = 0.95 * 1.0f;
+        bsphere.R = node1->radius;
+
         Vec3 pos = node1->camera._pos;
         node1->_on_ground = false;
+
 
         for (const auto &node2 : this->nodes){
             if (node1 == node2)
@@ -176,12 +203,16 @@ void Scene::_move_colliding()
                 continue;
             if (node2->phys == Node::PhysFlags::GHOST)
                 continue;
+            if (!node2->visible)
+                continue;
 //            if (node2->phys == Node::PhysFlags::SOLID)
 //                continue;
 
+            if ( !in(node1->_aabb, node2->_aabb) ) continue;
+
 
             bool collision_found = false;
-            pos = pull_away(node2->model._triangles, pos, min_distance, collision_found, node1->_on_ground);
+            pos = pull_away(node2->model._triangles, pos, node1->radius, collision_found, node1->_on_ground);
 
             if (collision_found){
                 on_collision(node1, node2);
@@ -216,6 +247,13 @@ void Scene::render(){
 
 Node::Flags operator &(Node::Flags flag1, Node::Flags flag2){
     return static_cast<Node::Flags>(static_cast<int>(flag1) & static_cast<int>(flag2));
+}
+
+Node::PhysFlags operator & (Node::PhysFlags flag1, Node::PhysFlags flag2) {
+    return static_cast<Node::PhysFlags>(static_cast<int>(flag1) & static_cast<int>(flag2));
+}
+Node::PhysFlags operator | (Node::PhysFlags flag1, Node::PhysFlags flag2) {
+    return static_cast<Node::PhysFlags>(static_cast<int>(flag1) | static_cast<int>(flag2));
 }
 
 void Node::particles_init(const Emitter &emitter, Texture &&texture)

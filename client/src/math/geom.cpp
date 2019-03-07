@@ -370,6 +370,72 @@ Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, 
     return pos;
 }
 
+#include <limits>
+void AABB::set(const std::vector<Triangle> &mesh) {
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+    min_x = min_y = min_z = std::numeric_limits<decltype(min_x)>::max();
+    max_x = max_y = max_z = std::numeric_limits<decltype(max_x)>::min();
+
+    for (int i = 0; i < mesh.size(); ++i) {
+        const Triangle &tri = mesh[i];
+        min_x = fmin(tri.A._x, min_x);
+        min_y = fmin(tri.A._y, min_y);
+        min_z = fmin(tri.A._z, min_z);
+        min_x = fmin(tri.B._x, min_x);
+        min_y = fmin(tri.B._y, min_y);
+        min_z = fmin(tri.B._z, min_z);
+        min_x = fmin(tri.C._x, min_x);
+        min_y = fmin(tri.C._y, min_y);
+        min_z = fmin(tri.C._z, min_z);
+
+        max_x = fmax(tri.A._x, max_x);
+        max_y = fmax(tri.A._y, max_y);
+        max_z = fmax(tri.A._z, max_z);
+        max_x = fmax(tri.B._x, max_x);
+        max_y = fmax(tri.B._y, max_y);
+        max_z = fmax(tri.B._z, max_z);
+        max_x = fmax(tri.C._x, max_x);
+        max_y = fmax(tri.C._y, max_y);
+        max_z = fmax(tri.C._z, max_z);
+    }
+
+    this->set(min_x, max_x, min_y, max_y, min_z, max_z);
+}
+
+void AABB::set(const Ball &ball) {
+    float min_x = ball.C._x - ball.R;
+    float max_x = ball.C._x + ball.R;
+    float min_y = ball.C._y - ball.R;
+    float max_y = ball.C._y + ball.R;
+    float min_z = ball.C._z - ball.R;
+    float max_z = ball.C._z + ball.R;
+
+    this->set(min_x, max_x, min_y, max_y, min_z, max_z);
+}
+
+void AABB::set(const float min_x, const float max_x, const float min_y, const float max_y, const float min_z, const float max_z)
+{
+//    this->C._x = (max_x - min_x) / 2;
+//    this->C._y = (max_y - min_y) / 2;
+//    this->C._z = (max_z - min_z) / 2;
+
+//    this->R = Vec3(max_x, max_y, max_z) - this->C;
+
+    this->R._x = (max_x - min_x) / 2;
+    this->R._y = (max_y - min_y) / 2;
+    this->R._z = (max_z - min_z) / 2;
+
+    this->C = Vec3(min_x, min_y, min_z) + this->R;
+}
+
+/** Do 2 AABB intersect each other? */
+bool in(const AABB &aabb1, const AABB &aabb2) {
+    Vec3 min_distance = aabb1.R + aabb2.R;
+    Vec3 distance = (aabb2.C - aabb1.C).abs();
+
+    Vec3 inter = distance - min_distance;
+    return inter._x < 0 && inter._y < 0 && inter._z < 0;
+}
 
 #ifdef RUN_TESTS
     #include <assert.h>

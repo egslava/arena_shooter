@@ -192,11 +192,19 @@ inline float distance(const Segment &segment, const Vec3 &point){
     return (point-segment.closest(point)).len3();
 }
 
-
+struct AABB {
+    void set(const std::vector<Triangle> &mesh);
+    void set(const Ball &ball);
+    void set(const float min_x, const float max_x, const float min_y, const float max_y, const float min_z, const float max_z );
+//    float min_x, min_y, min_z, max_x, max_y, max_z;
+    Vec3 C;
+    Vec3 R;
+};
 
 inline bool in(const Ball &sphere, const Vec3 &point);
 inline bool in(const Frustum &frustum, const Vec3 &point);
 inline bool in(const Frustum &frustum, const Ball &sphere);
+bool in(const AABB &aabb1, const AABB &aabb2);
 
 void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisions_found, bool &on_ground);
 Vec3 pull_away(const std::vector<Triangle> &mesh, Vec3 pos, float min_distance, bool &collisions_found, bool &on_ground);
