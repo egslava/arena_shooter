@@ -12,7 +12,7 @@ class Bullet;
 class Bullets;
 
 class Bullet {
-    SPNode _node_particles;
+    SPNode _node_fireball;
     SPNode _node_smoke;
     double _start_time;
     double _last_update_time;

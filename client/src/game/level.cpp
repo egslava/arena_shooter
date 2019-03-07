@@ -41,7 +41,7 @@ void Level::init(){
     player->name = "Player";
     player->flags = Node::Flags::NONE;
     player->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::GRAVITY;
-    player->radius = 0.95 * 1.0f;
+    player->radius = 0.90 * 1.0f;
     //        player->camera._pos = Vec3(0, 2, 0);
 
     scene.nodes.emplace_back(player);

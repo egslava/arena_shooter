@@ -46,30 +46,6 @@ void Bullet::init(Scene &scene)
     this->explosion_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
     this->explosion_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
 
-//    SPNode explosion = make_shared<Node>();
-//    explosion->name = "Explosion";
-//    explosion->flags = Node::Flags::NONE;
-//    explosion->phys = Node::PhysFlags::GHOST;
-//    explosion->camera._pos = Vec3(-5, 3, 5);
-
-    this->_node_particles = make_shared<Node>();
-    this->_node_particles->name = "Fireball";
-    this->_node_particles->flags = Node::Flags::NONE;
-    this->_node_particles->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
-    this->_node_particles->camera._pos = Vec3(-3, 3, 3);
-    this->_node_particles->radius = 0.3;
-
-//    this->_node_particles->
-    //    this->_tex.data("./res/smokeparticle.pvr");
-    //    this->_tex.data("./res/fireparticle.pvr");
-    //    this->_tex.data("./res/face.pvr");
-    //    this->_tex.data("./res/old-lady.pvr");
-    //        fireball->particles.emitter = fireball_emitter;
-    //        fireball->particles_init(fireball_emitter, Texture().data("./res/smokeparticle.pvr"));
-    this->_node_particles->particles_init(fireball_emitter, Texture().data("./res/fireparticle2.pvr"));
-
-    this->_node_particles->visible = false;
-    scene.nodes.emplace_back(this->_node_particles);
 
 
     this->smoke_emitter.type = EmitterType::EXPLOSION;
@@ -94,6 +70,34 @@ void Bullet::init(Scene &scene)
 //        smoke_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
     this->smoke_emitter.start_color_range = Ball{Vec3(0.5, 0.5, 0.5, 0.1), 0.00};
     this->smoke_emitter.end_color_range = Ball{Vec3(0.0,0.0,0, 0), 0.00};
+
+
+
+    SPNode explosion = make_shared<Node>();
+    explosion->name = "Explosion";
+    explosion->flags = Node::Flags::NONE;
+    explosion->phys = Node::PhysFlags::GHOST;
+    explosion->camera._pos = Vec3(-5, 3, 5);
+
+    this->_node_fireball = make_shared<Node>();
+    this->_node_fireball->name = "Fireball";
+    this->_node_fireball->flags = Node::Flags::NONE;
+    this->_node_fireball->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
+    this->_node_fireball->camera._pos = Vec3(-3, 3, 3);
+    this->_node_fireball->radius = 0.3;
+
+//    this->_node_particles->
+    //    this->_tex.data("./res/smokeparticle.pvr");
+    //    this->_tex.data("./res/fireparticle.pvr");
+    //    this->_tex.data("./res/face.pvr");
+    //    this->_tex.data("./res/old-lady.pvr");
+    //        fireball->particles.emitter = fireball_emitter;
+    //        fireball->particles_init(fireball_emitter, Texture().data("./res/smokeparticle.pvr"));
+    this->_node_fireball->particles_init(fireball_emitter, Texture().data("./res/fireparticle2.pvr"));
+
+    this->_node_fireball->visible = false;
+    scene.nodes.emplace_back(this->_node_fireball);
+
     this->_node_smoke = make_shared<Node>();
     this->_node_smoke->name = "Smoke";
     this->_node_smoke->flags = Node::Flags::NONE;
@@ -105,7 +109,7 @@ void Bullet::init(Scene &scene)
 
     this->_node_smoke->uda_group = UDA_BULLET;
     this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
-    this->_node_particles->uda_group = UDA_BULLET;
+    this->_node_fireball->uda_group = UDA_BULLET;
 }
 
 double _now(){
@@ -121,23 +125,23 @@ void Bullet::fire(const Camera &from)
     this->_start_time = _now();
     this->_last_update_time = this->_start_time;
     this->_is_exploded = false;
-    this->_node_particles->camera._pos = this->_pos;
+    this->_node_fireball->camera._pos = this->_pos;
 
     this->_node_smoke->visible = false;
-    this->_node_particles->visible = true;
+    this->_node_fireball->visible = true;
 
-    this->_node_particles->particles.emitter = this->fireball_emitter;    // stop
+    this->_node_fireball->particles.emitter = this->fireball_emitter;    // stop
     this->_node_smoke->particles.reinit(from._pos);
 
-    this->_node_particles->particles.emitter.type = EmitterType::FOUNTAIN;    // start
-    this->_node_particles->particles.reinit(this->_pos);
+    this->_node_fireball->particles.emitter.type = EmitterType::FOUNTAIN;    // start
+    this->_node_fireball->particles.reinit(this->_pos);
 }
 
 void Bullet::_explode()
 {
-    this->_node_particles->particles.emitter = this->explosion_emitter;    // stop
+    this->_node_fireball->particles.emitter = this->explosion_emitter;    // stop
 //    this->_node_particles->particles.reinit(this->_pos);
-    this->_node_particles->particles.explode();
+//    this->_node_particles->particles.explode();
     this->_node_smoke->visible = true;
     this->_node_smoke->camera._pos = this->_pos;
     this->_node_smoke->particles.reinit(this->_pos);
@@ -152,13 +156,13 @@ bool Bullet::_should_explode()
 
 bool Bullet::is_dead() const
 {
-return _now() - this->_start_time > 4;
+    return _now() - this->_start_time > 8;  // time enough to go up to the skies and, then, crush on the ground
 }
 
 void Bullet::update()
 {
     if (this->is_dead()){
-        this->_node_particles->visible = false;
+        this->_node_fireball->visible = false;
         this->_node_smoke->visible = false;
         return;
     }
@@ -175,7 +179,7 @@ void Bullet::update()
     this->_dir += Vec3(0, -0.3, 0)*dt;
     this->_pos += 10 * dt * this->_dir;
 
-    this->_node_particles->camera._pos = this->_pos;
+    this->_node_fireball->camera._pos = this->_pos;
 
 }
 
@@ -185,7 +189,7 @@ int Bullets::find(SPNode &by)
     for (int i = 0; i < this->_bullets.size(); i++) {
         const Bullet &bullet = this->_bullets[i];
 
-        if (bullet._node_particles == by || bullet._node_smoke == by){
+        if (bullet._node_fireball == by || bullet._node_smoke == by){
             return i;
         }
     }
