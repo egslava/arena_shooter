@@ -121,6 +121,10 @@ struct Scene {
     void _move_colliding();
     void _update_particles();
     void render();
+
+    /** You can not change the position of the Node in this callback,
+     *  since this callback is called before a node is 'pulled' away from a wall
+     */
     std::function<void(SPNode, SPNode)> on_collision;
 
 

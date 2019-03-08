@@ -6,7 +6,8 @@
 #include "gapi/gapi.h"
 
 typedef enum {
-    UDA_BULLET = 1
+    UDA_BULLET = 1,
+    UDA_ENEMY = 2
 } UDA_GROUPS;
 
 struct Level {

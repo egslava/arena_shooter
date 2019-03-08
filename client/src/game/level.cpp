@@ -4,6 +4,7 @@ void print_collides(SPNode node1, SPNode node2){
 //    printf("Collision: %s and %s\n", node1->name, node2->name);
 }
 
+const char * LEVEL_CRYSTAL_TELEPORTER_BOTTOM = "Crystal Teleporter Bottom";
 void Level::init(){
     scene.init();
     scene.on_collision = [this](SPNode node1, SPNode node2) { this->on_collision(node1, node2); };
@@ -25,7 +26,7 @@ void Level::init(){
     scene.nodes.emplace_back(new Node{"Roof top", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/RoofTop.model", Texture().data("./res/level/textures/RoofLightMap.pvr")/*, Color(RED/PINK)*/).color(Vec3(0.319, 0, 0.003).bright_rgb(3)))});
     scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Crystal_Big.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Crystal_Top.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
-    scene.nodes.emplace_back(new Node{"Crystal", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/CrystalBottom.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
+    scene.nodes.emplace_back(new Node{LEVEL_CRYSTAL_TELEPORTER_BOTTOM, Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/CrystalBottom.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"BallLight1", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight1.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"BallLight2", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight2.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"BallLight3", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/BallLight3.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/))});
@@ -77,8 +78,25 @@ void Level::init(){
 
 void Level::on_collision(SPNode &node1, SPNode &node2)
 {
+    // crystal teleporter
+    SPNode non_crystal_bottom, crystal_bottom;
+    if (node1->name == LEVEL_CRYSTAL_TELEPORTER_BOTTOM || node2->name == LEVEL_CRYSTAL_TELEPORTER_BOTTOM){
+        if(node1->name == LEVEL_CRYSTAL_TELEPORTER_BOTTOM){
+            non_crystal_bottom = node2;
+            crystal_bottom = node1;
+        } else {
+            non_crystal_bottom = node1;
+            crystal_bottom = node2;
+        }
+
+        if (non_crystal_bottom == player || non_crystal_bottom->uda_group == UDA_ENEMY) {
+            non_crystal_bottom->camera._pos._y += 15;
+            return;
+        }
+
+    }
+
     bullets.on_collision(node1, node2);
-//    printf("Collision: %s and %s\n", node1->name, node2->name);
 }
 
 void MyAppCallback::on_mousemove(double dx, double dy){
@@ -133,45 +151,16 @@ void MyAppCallback::on_tick(double tick_time){
 
     // camera navigation
     {
-        Vec3 dir;
         float moving_speed = tick_time * (this->is_ctrl_pressed?6*2:6);
-        if (this->keys_pressed[SDL_SCANCODE_W]){
-            dir += Vec3(0, 0, -moving_speed);
-            level.player->camera.go(moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_S]){
-            dir += Vec3(0, 0, moving_speed);
-            level.player->camera.go(-moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_A]){
-            dir += Vec3(-moving_speed, 0, 0);
-            level.player->camera.stride(-moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_D]){
-            dir += Vec3(moving_speed, 0, 0);
-            level.player->camera.stride(moving_speed);
-        }
+        if (this->keys_pressed[SDL_SCANCODE_W]) level.player->camera.go(moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_S]) level.player->camera.go(-moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_A]) level.player->camera.stride(-moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_D]) level.player->camera.stride(moving_speed);
 
-        if (this->keys_pressed[SDL_SCANCODE_UP]){
-            dir += Vec3(0, 0, -moving_speed);
-            level.enemy->camera.go(moving_speed);
-            //                    level.fireball->camera.go(moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_DOWN]){
-            dir += Vec3(0, 0, moving_speed);
-            level.enemy->camera.go(-moving_speed);
-            //                    level.fireball->camera.go(-moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_LEFT]){
-            dir += Vec3(-moving_speed, 0, 0);
-            level.enemy->camera.stride(-moving_speed);
-            //                    level.fireball->camera.stride(-moving_speed);
-        }
-        if (this->keys_pressed[SDL_SCANCODE_RIGHT]){
-            dir += Vec3(moving_speed, 0, 0);
-            level.enemy->camera.stride(moving_speed);
-            //                    level.fireball->camera.stride(moving_speed);
-        }
+        if (this->keys_pressed[SDL_SCANCODE_UP]) level.enemy->camera.go(moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_DOWN]) level.enemy->camera.go(-moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_LEFT]) level.enemy->camera.stride(-moving_speed);
+        if (this->keys_pressed[SDL_SCANCODE_RIGHT]) level.enemy->camera.stride(moving_speed);
 
         if (this->keys_pressed[SDL_SCANCODE_SPACE]){
             if (level.player->_on_ground) {
@@ -182,6 +171,7 @@ void MyAppCallback::on_tick(double tick_time){
 
         level.nebula->camera.rgOX += 10.0f;
         level.nebula->camera.rgOY += 10.0f;
+
         //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
 
         //                res *= camera.getMatWorldToCamera();

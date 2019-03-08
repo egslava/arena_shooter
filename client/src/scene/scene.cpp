@@ -192,7 +192,7 @@ void Scene::_move_colliding()
 //        float min_distance = 0.95 * 1.0f;
         bsphere.R = node1->radius;
 
-        Vec3 pos = node1->camera._pos;
+
         node1->_on_ground = false;
 
 
@@ -212,12 +212,17 @@ void Scene::_move_colliding()
 
 
             bool collision_found = false;
-            pos = pull_away(node2->model._triangles, pos, node1->radius, collision_found, node1->_on_ground);
+
+            // the new pos should be set before calling a callback
+            // otherwise, the callback will not be able to change a position
+            // for instance, I had a crystal-teleporter. When we collide with the
+            // crystal, the position should be changed. But it was not possible,
+            // because `node1->camera._pos = pos;` rejected the changes afterwards.
+            node1->camera._pos = pull_away(node2->model._triangles, node1->camera._pos, node1->radius, collision_found, node1->_on_ground);
 
             if (collision_found){
                 on_collision(node1, node2);
             }
-            node1->camera._pos = pos; //dir + res;
         }
     }
 }
