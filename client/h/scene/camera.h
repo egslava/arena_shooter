@@ -19,12 +19,14 @@ class Camera{
         //
         return
                 Mat4x4::set_rot_x(-this->rgOX) *
-                Mat4x4::set_rot_y(-this->rgOY)
+                Mat4x4::set_rot_y(-this->rgOY) *
+                Mat4x4::set_rot_z(-this->rgOZ)
                 ;
     }
 
     Mat4x4 rotC2W() const{
         return
+                Mat4x4::set_rot_z(this->rgOZ) *
                 Mat4x4::set_rot_y(this->rgOY) *
                 Mat4x4::set_rot_x(this->rgOX)
                 ;
@@ -32,7 +34,7 @@ class Camera{
 
 public:
     Vec3 _pos;
-    float rgOX=0, rgOY=0;  // rotate around global OX and OY
+    float rgOX=0, rgOY=0, rgOZ=0;  // rotate around global OX and OY
 
     Mat4x4 getMatWorldToCamera() const;
     Mat4x4 getMatCameraToWorld() const;
@@ -41,6 +43,7 @@ public:
     void fly(float distance);
     void go(float distance);
     void stride(float distance_right);
+    void look_at(const Vec3 &point);
 
 };
 

@@ -4,17 +4,19 @@
 #include "game/bullet.h"
 #include "scene/scene.h"
 #include "gapi/gapi.h"
+#include "game/enemy.h"
 
-typedef enum {
-    UDA_BULLET = 1,
-    UDA_ENEMY = 2
-} UDA_GROUPS;
 
 struct Level {
     Scene scene;
-    SPNode player, enemy, nebula;
+    SPNode player, nebula;
     SPNodes enemies;
     Bullets bullets;
+    Enemy enemy;
+
+#ifndef NDEBUG
+    SPNode axes;
+#endif
 
     void init();
     void on_collision(SPNode &node1, SPNode &node2);

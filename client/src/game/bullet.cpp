@@ -1,4 +1,4 @@
-#include "game/bullet.h"
+#include "game/game.h"
 
 //class
 
@@ -120,7 +120,7 @@ void Bullet::fire(const Camera &from)
     this->_pos = from._pos;
     this->_dir = Vec3(from.getMatCameraToWorld() * Vec3(0, 0, -1)) - this->_pos;
 
-    this->_pos += this->_dir;
+    this->_pos += this->_dir*2;  // *2 so, the bullet doesn't kill the enemy immediately, when the enemy make a shot
 
     this->_start_time = _now();
     this->_last_update_time = this->_start_time;

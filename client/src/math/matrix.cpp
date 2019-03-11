@@ -82,10 +82,10 @@ Mat4x4 Mat4x4::set_rot_y(float angle){
 Mat4x4 Mat4x4::set_rot_z(float angle)
 {
     float data[16] = {
-        cos(angle),    -sin(angle),             0,                0,
-        sin(angle),     cos(angle),             0,                0,
-                 0,              0,             0,                0,
-                 0,              0,             0,                1
+         cos(angle),      sin(angle),             0,                0,
+        -sin(angle),      cos(angle),             0,                0,
+                  0,               0,             1,                0,
+                  0,               0,             0,                1
     };
 
     Mat4x4 result(data);

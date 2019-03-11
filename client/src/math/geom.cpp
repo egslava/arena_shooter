@@ -337,7 +337,7 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
     //       collision_point._x, collision_point._y, collision_point._z,
     //       pos._x, pos._y, pos._z);
     // printf("triangle. %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f;  %0.3f,%0.3f,%0.3f\n", tri.A._x, tri.A._y, tri.A._z, tri.B._x, tri.B._y, tri.B._z, tri.C._x, tri.C._y, tri.C._z);
-    fflush(stdout);
+    // fflush(stdout);
     // printf("intersection. x: %f, y: %f, z: %f\n", p.pos._x, p.pos._y, p.pos._z);
 
     Vec3 correction = 1*(d<0?-1:1)*normal * (min_distance-fabs(d)); // * fabs((collision_point - pos).dot3(tri.n()));

@@ -22,6 +22,9 @@ public:
     void use(const Camera &camera, const Vec3 &ambient);
     void uniform(const char *name, float value);
     void uniform(const char *name, const Vec3 &value);
+    void uniform(const char *name, const Mat4x4 &value);
+    void set_mat_model(const Mat4x4 &mat);
+    void set_mat_camera(const Mat4x4 &mat);
     void set_color(const Vec3 &color);
 
 //    void bind(){

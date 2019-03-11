@@ -209,7 +209,11 @@ void Scene::_move_colliding()
 //                continue;
 
             if ( !in(node1->_aabb, node2->_aabb) ) continue;
-
+//поиск коллизий враг - пуля
+            if (node2->uda_group == 1){
+                printf("Checking %s, %s\n", node1->name, node2->name);
+                fflush(stdout);
+            }
 
             bool collision_found = false;
 
@@ -219,6 +223,12 @@ void Scene::_move_colliding()
             // crystal, the position should be changed. But it was not possible,
             // because `node1->camera._pos = pos;` rejected the changes afterwards.
             node1->camera._pos = pull_away(node2->model._triangles, node1->camera._pos, node1->radius, collision_found, node1->_on_ground);
+
+            collision_found |= (
+                        node1->model._triangles.size() == 0 &&
+                        node2->model._triangles.size() == 0 &&
+                        node1->uses_particles && node2->uses_particles
+                        );
 
             if (collision_found){
                 on_collision(node1, node2);
@@ -230,17 +240,33 @@ void Scene::_move_colliding()
 void Scene::render(){
     this->_elapsed.update();
     //    	program.transform(angleOY, x, y, z, s, s, s);
-    program.use(_camera->camera, this->ambient_color);
 
+    program.use(_camera->camera, this->ambient_color);
     for (const SPNode &node : nodes){
         if (in_frustum(node)){
             if (!node->visible) continue;
 
             program.set_color(node->model._color);
+            program.set_mat_model(node->camera.getMatCameraToWorld());
+
+            if ((node->flags & Node::Flags::SCREENCOORDS)==Node::Flags::NONE){
+                glEnable(GL_DEPTH_TEST);
+                program.set_mat_camera( _camera->camera.getMatWorldToCamera() );
+            } else {
+                glDisable(GL_DEPTH_TEST);
+                program.set_mat_camera( Mat4x4::I );
+            }
+
             node->model.draw(); // scene.render(node);
 
-            if (node->uses_particles)
+            if (node->uses_particles){
+//                glEnable(GL_BLEND);
+//                glBlendFunc(GL_ONE, GL_ONE);
+//                glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 node->particles.draw(_camera->camera, this->ambient_color);
+//                glDisable(GL_BLEND);
+            }
+//                glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             if (this->_boundings){
 //                node->
 //                _bsphere.draw();
@@ -260,6 +286,10 @@ Node::PhysFlags operator & (Node::PhysFlags flag1, Node::PhysFlags flag2) {
 Node::PhysFlags operator | (Node::PhysFlags flag1, Node::PhysFlags flag2) {
     return static_cast<Node::PhysFlags>(static_cast<int>(flag1) | static_cast<int>(flag2));
 }
+Node::Flags operator | (Node::Flags flag1, Node::Flags flag2) {
+    return static_cast<Node::Flags>(static_cast<int>(flag1) | static_cast<int>(flag2));
+}
+
 
 void Node::particles_init(const Emitter &emitter, Texture &&texture)
 {

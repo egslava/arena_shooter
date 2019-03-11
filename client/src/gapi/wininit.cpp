@@ -45,9 +45,10 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 //    glBlendFunc(GL_ONE, GL_ONE);
-//    glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+
+//    glBlendFunc(GL_ONE, GL_SRC_COLOR);
+//    glBlendColor(1, 1, 1, 1);
     glEnable( GL_LINE_SMOOTH );
     glEnable(GL_MULTISAMPLE);
 
@@ -76,7 +77,8 @@ void MySDLApp::loop(){
 
         fps_counter.begin();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         callback.on_tick(tick_time);
 

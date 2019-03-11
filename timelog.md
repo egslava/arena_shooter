@@ -557,6 +557,52 @@ Commit:
 ----------
 Так, всё. Надо делать противников :) Возможно, сначала надо сделать телепорт внутри кристалла.
 
+09/03/2019
+----------
+[+] Телепорт-кристалл сделан. Работает на меня и на противника.
+[+] "Противник" за мной бегает, его можно "убить" - он переродится в случайном месте карты.
+
+11/03/2019
+----------
+Наконец-то работает метод look_at. Было очень проблеммно его сделать. Простой перевод из декартовых координат в сферические не работает, нужен ещё костыль.
+Вот просто пример перевода координат:
+rotX = acos(y)
+rotY = atan2(x,z)
+
+[+] Enemy is running
+[+] Enemy can be killed
+[+] Enemy can walk around imaginary spheres to avoid falling from the flower
+[+] enemy jumps if it has stucked
+[+] Enemy can fire! :)
+[+] Nebula is rotating!
+[x] Changed teleportation: now it jumps straigh on the flower, not higher
+Should be able to be killed
+
+Code:
+[-] Avoid clearing color buffer for now - it's not needed
+[x] Mat4x4::set_rot_z is fixed now
+[+] Camera::look_at
+[+] set_model_mat / set_camera_mat
+[+] Node::Flags::APPLY_TRANSFORMS / Node::Flags::SCREEN_COORDS
+[+] added a world-axes in debug mode and local-axes in debug mode as well
+
+А вот реально работающий код:
+rot_X = -(acos(y) - M_PI/2);
+rot_Y = atan2(x,z) - M_PI;
+
+[+] glClearColor - убрал
+Надо:
+1. Анимация телепорта
+[v] Противник должен смекать, что надо идти к кристаллу. Возможно, если я на платформе или на цветке. Т.е. если высота больше заданной!
+Интересно то, как эволюционировались и упрощались идеи о ИИ в игре :) 
+1) Сначала я думал о поиске пути, выбирая между навмешем и вей-поинтами. 
+2) Потом думал о том, что можно просто "переть напролом", и смотреть: может ли бот дойти до игрока или он встрянет (расстояние между игроком и ботом перестанет "сокращаться"). В таком случае, на каждый кадр пришлось бы делать довольно много интегрирований и, имхо, это лагало бы (попробовал в игре увеличить число интеграций от 1 до 100 и начались тормоза в дебаг-моде).
+3) В итоге понял, что бот тупой: не может карабкаться. Т.е. он должен идти к кристаллу, только в том случае, если игрок значительно выше бота. Вот и всё! :) Проверить дельту по z.
+
+3. Противник должен уметь ползать "по кругу" и не падать с него. Делаю. Аналогично, он должен не падать с "розочки". Решил сделать условно включаемыми (по высоте) "отталкивателями".
+4. Противник должен уметь "запрыгивать"
+4. Прицел
+5. Много противников. Должны нарастать "волнами"
 
 Credits:
 Графика:
@@ -568,3 +614,64 @@ CMake:
 # @Artalus (Igor Ivanov) и @egorpugin (Egor Pugin). Помогли портировать на Windows, объяснили про Generator Expressions. Сказали, что создать цель: copy-res, которая бы не устаревала постоянно, невозможно.
 @megaxela - Alex Ushanov. Подсказал, как добавить поддиректории в res.
 @DenisKormalev объяснил, что target_sources - это не только .cpp-файлы, а, вообще все зависимости проекта. А давать ли их на вход компилятору или нет - это уже решает CMake, в засимости от используемого языка программирования (должно настраиваться).
+
+-1
+
+
+
+//    this->rgOX = acos(x);
+//    this->rgOY = acos(y);
+//    this->rgOX = acos(x);
+//    this->rgOY = acos(z);
+//    this->rgOX = acos(y);
+//    this->rgOY = acos(x);
+//    this->rgOX = acos(y);
+//    this->rgOY = acos(z);
+//    this->rgOX = acos(z);  ?
+//    this->rgOY = acos(x);  ?
+//    this->rgOX = acos(z);
+//    this->rgOY = acos(y);
+
+
+//    this->rgOX = acos(-x);
+//    this->rgOY = acos(-y);
+//    this->rgOX = acos(-x);
+//    this->rgOY = acos(-z);
+//    this->rgOX = acos(-y);
+//    this->rgOY = acos(-x);
+//    this->rgOX = acos(-y);
+//    this->rgOY = acos(-z);
+//    this->rgOX = acos(-z);
+//    this->rgOY = acos(-x);
+//    this->rgOX = acos(-z);
+//    this->rgOY = acos(-y);
+
+
+//    this->rgOX = -acos(x); ?
+//    this->rgOY = -acos(y); ?
+//    this->rgOX = -acos(x); ?
+//    this->rgOY = -acos(z); ?
+//    this->rgOX = -acos(y);
+//    this->rgOY = -acos(x);
+//    this->rgOX = -acos(y);
+//    this->rgOY = -acos(z);
+//    this->rgOX = -acos(z);
+//    this->rgOY = -acos(x);
+//    this->rgOX = -acos(z);
+//    this->rgOY = -acos(y);
+
+
+//    this->rgOX = -acos(-x);
+//    this->rgOY = -acos(-y);
+//    this->rgOX = -acos(-x);
+//    this->rgOY = -acos(-z);
+//    this->rgOX = -acos(-y);
+//    this->rgOY = -acos(-x);
+//    this->rgOX = -acos(-y);  ?
+//    this->rgOY = -acos(-z);  ?
+//    this->rgOX = -acos(-z);
+//    this->rgOY = -acos(-x);
+
+x->z
+y->x
+z->y

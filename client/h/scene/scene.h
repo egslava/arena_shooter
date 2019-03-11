@@ -43,7 +43,13 @@ struct Node {
         NONE = 0,
         INVISIBLE = 1, // the model should not be rendered. Still collideable
         GONE = 2,  // the same meaning like in Android SDK: the node should not be taken into account at all
-        LIGHT = 4
+        LIGHT = 4,
+
+        /** */
+        APPLY_TRANSFORMS = 8,
+
+        /** turns off z-buffer and doesn't apply camera matrix transformation */
+        SCREENCOORDS = 16,
     };
     const char *name;
     Flags flags;
@@ -77,6 +83,7 @@ struct Node {
 Node::Flags operator & (Node::Flags flag1, Node::Flags flag2);
 Node::PhysFlags operator & (Node::PhysFlags flag1, Node::PhysFlags flag2);
 Node::PhysFlags operator | (Node::PhysFlags flag1, Node::PhysFlags flag2);
+Node::Flags operator | (Node::Flags flag1, Node::Flags flag2);
 //bool operator  !(Node::Flags flag){ return flag != Node::Flags::NONE; };
 
 

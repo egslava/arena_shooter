@@ -1,4 +1,4 @@
-#include "game/level.h"
+#include "game/game.h"
 
 void print_collides(SPNode node1, SPNode node2){
 //    printf("Collision: %s and %s\n", node1->name, node2->name);
@@ -38,41 +38,33 @@ void Level::init(){
     scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
 
+#ifndef NDEBUG
+    Node *node = new Node{"Axes", Node::Flags::SCREENCOORDS, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/axes.model", Texture().data("./res/debug/axes.pvr")/*, Color(RED/PINK)*/))};
+    node->camera._pos._z = -4;
+    node->camera._pos._x = -2.5;
+    node->camera._pos._y = -2.5;
+    scene.nodes.emplace_back(node);
+
+    Node *node2 = new Node{"Axes", Node::Flags::APPLY_TRANSFORMS, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/axes.model", Texture().data("./res/debug/axes.pvr")/*, Color(RED/PINK)*/))};
+    this->axes = shared_ptr<Node>(node2);
+    node2->camera._pos._y = 4;
+    scene.nodes.emplace_back(axes);
+#endif
+
     player = make_shared<Node>();
     player->name = "Player";
     player->flags = Node::Flags::NONE;
     player->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::GRAVITY;
+//    player->radius = 0.90 * 1.0f;
     player->radius = 0.90 * 1.0f;
     //        player->camera._pos = Vec3(0, 2, 0);
 
     scene.nodes.emplace_back(player);
     scene._camera = player;
 
-    Emitter enemy_emitter;
-    enemy_emitter.type = EmitterType::FOUNTAIN;
-    enemy_emitter.min_start_angle = -180.0f / 180.0f * M_PI;
-    enemy_emitter.max_start_angle = 180 / 180.0f * M_PI ;
-    enemy_emitter.min_start_angular_velocity = 3;
-    enemy_emitter.max_start_angular_velocity = 4;
-    enemy_emitter.min_end_angular_velocity = 5;
-    enemy_emitter.max_end_angular_velocity = 9;
-
-    enemy_emitter.max_particles = 30;
-    enemy_emitter.min_live_time = 0.7;
-    enemy_emitter.max_live_time = 2.1;
-    enemy_emitter.velocity_range = Ball{Vec3(0, 0, 0), 0.1};
-    enemy_emitter.position_range = 0.05;
-    enemy_emitter.start_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.7), 0.0};
-    enemy_emitter.end_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.0), 0.0};
-    //        Particles enemy_particles;
-    enemy = make_shared<Node>();
-    enemy->name = "Enemy";
-    enemy->flags = Node::Flags::NONE;
-    enemy->phys = Node::PhysFlags::GHOST;
-    enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
-    scene.nodes.emplace_back(enemy);
-    enemy->camera._pos = Vec3(0, 5, 0);
+    enemy.init(scene);
     bullets.init(scene);
+//    ene
 
 }
 
@@ -90,11 +82,36 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
         }
 
         if (non_crystal_bottom == player || non_crystal_bottom->uda_group == UDA_ENEMY) {
-            non_crystal_bottom->camera._pos._y += 15;
+            non_crystal_bottom->camera._pos._y += 12;
             return;
         }
-
     }
+
+    if (node1 == enemy._enemy || node2 == enemy._enemy){
+//        printf("Collision: %s, %s", node1->name, node2->name);
+    }
+
+    if ( (node1->uda_group == UDA_ENEMY && node2->uda_group == UDA_BULLET )
+         ||
+         (node1->uda_group == UDA_BULLET && node2->uda_group == UDA_ENEMY )){
+//        printf("Collision: %s, %s", node1->name, node2->name);
+        SPNode _bullet, _enemy;
+        if (node1->uda_group == UDA_BULLET){
+            _bullet = node1;
+            _enemy = node2;
+        } else{
+            _bullet = node2;
+            _enemy = node1;
+        }
+
+        int idx_bullet = bullets.find(_bullet);
+        bullets._bullets[idx_bullet]._explode();
+
+        _enemy->camera._pos = Vec3(rand(-20, 20), rand(2, 10), rand(-20, 20));
+        return;
+    }
+
+    fflush(stdout);
 
     bullets.on_collision(node1, node2);
 }
@@ -143,12 +160,122 @@ void MyAppCallback::on_keydown(SDL_Scancode scancode){
     }
 }
 
+Vec3 pull_away(const Vec3 &pos, const Vec3 &from){
+    Vec3 dir = from - pos;
+    float d = dir.len3();
+    return dir * (1.0f / (sqrt(sqrt(sqrt(d)))));
+}
+
+Vec3 walk_around(const Vec3 &pos, const Ball &ball){
+    Vec3 dir = ball.C - pos;
+    dir._y = 0;
+    float d = dir.len3();
+
+    if (d > ball.R) return Vec3(0,0,0);
+    return -dir.normed();
+}
+
+void enemy_follows(double tick_time, Enemy &enemy, const SPNode &player){
+
+    auto &_last_pos = enemy._last_pos;
+
+    float enemy_velocity = 6;
+    Vec3 &enemy_pos = enemy._enemy->camera._pos;
+    Vec3 &player_pos = player->camera._pos;
+    Vec3 dir_enemy_to_player = (player->camera._pos - enemy_pos).normed();
+    Vec3 dir_enemy_to_teleport = (-enemy_pos).normed();
+    if (player_pos._y - enemy_pos._y >= 7 && enemy_pos._y < 8){
+        // the player is too high AND the bot is not on top - need to teleport
+        enemy_pos += dir_enemy_to_teleport * enemy_velocity * tick_time;
+    } else {
+        Vec3 correction(0,0,0);
+
+        if (player_pos._y > 8) {
+            // the player is on top, need to play diferent
+            if (enemy_pos._y > 9.5){
+                // the enemy is on the rose
+//                Vec3 correction = pull_away(enemy_pos + dir_enemy_to_player, Vec3(10,12.465, -10));
+//                correction += pull_away(enemy_pos + dir_enemy_to_player, Vec3(-10,12.465, -10));
+                correction = walk_around(enemy_pos + dir_enemy_to_player, Ball{Vec3(10,12.465, -10), 13});
+                correction += walk_around(enemy_pos + dir_enemy_to_player, Ball{Vec3(-10,12.465, 10), 13});
+    //            correction = correction * 6 * tick_time;
+            } else if (enemy_pos._y > 8){
+                // the enemy is on the red circle
+//                correction = walk_around(enemy_pos + dir_enemy_to_player, Ball{Vec3(0,12.465, 0), 13});
+                correction = walk_around(enemy_pos + dir_enemy_to_player, Ball{Vec3(0,12.465, 0), 14});
+//                correction = walk_around(enemy_pos + dir_enemy_to_player, Ball{Vec3(0,-1, 0), 15.5});
+            }
+        }
+        dir_enemy_to_player += correction;
+        dir_enemy_to_player = dir_enemy_to_player.normed();
+        enemy_pos += dir_enemy_to_player * enemy_velocity * tick_time;
+        _last_pos.push_back(enemy_pos);
+
+
+        constexpr int max_poses = 60;
+        if (_last_pos.size() > max_poses){
+            _last_pos.pop_front();
+        }
+
+        Vec3 mean;
+        for (const auto &vec : _last_pos) mean += vec;
+        mean = mean * (1.0f / static_cast<float>(max_poses));
+        float max_deviation = 0;
+        for (const auto &vec : _last_pos){
+            max_deviation = max(max_deviation, (vec-mean).len3());
+        }
+
+        if (max_deviation < 10*tick_time && _last_pos.size() >= max_poses && enemy._enemy->_on_ground){
+            enemy._enemy->g_velocity = 10;
+            enemy._enemy->_on_ground = false;
+            Vec3 &pl_pos = player->camera._pos;
+            printf("Char pos: %0.2f, %0.2f, %0.2f\n", pl_pos._x, pl_pos._y, pl_pos._z);
+        }
+
+
+//        прыжки делать по среднему: т.е. когда отклонение (максимум расстояния) от среднего выше заданного, тогда прыгать.
+//        Сейчас алгоритм считает сумму пройденных расстояний. Это неправильно. Кажется, очень часто алгоритм "тупит" из-за того,
+//        что сначала идёт в одну сторону, а потом - в другую. Таким образом, я не учитываю то, что алгоритм может "мельтешить".
+
+//        float dist = 0;
+//        for (int i = 0; i < _last_pos.size()-1; i++){
+//            dist += (_last_pos[i] - _last_pos[i+1]).len3();
+//        }
+//        dist /= static_cast<float>(max_poses);
+
+//        if (dist < 2.5*tick_time && _last_pos.size() >= max_poses && enemy._enemy->_on_ground){
+//            enemy._enemy->g_velocity = 10;
+//            enemy._enemy->_on_ground = false;
+//            Vec3 &pl_pos = player->camera._pos;
+//            printf("Char pos: %0.2f, %0.2f, %0.2f\n", pl_pos._x, pl_pos._y, pl_pos._z);
+//        }
+    }
+
+}
+
 void MyAppCallback::on_tick(double tick_time){
+    level.enemy.on_tick(tick_time);
     level.bullets.update();
     level.scene.integrate();
     level.scene.render();
 
+     enemy_follows(tick_time, level.enemy, level.player);
 
+#ifndef NDEBUG
+     level.axes->camera.rgOX = level.player->camera.rgOX;
+     level.axes->camera.rgOY = level.player->camera.rgOY;
+#endif
+//    level.enemy._enemy->camera.
+    level.enemy._enemy->camera.look_at(level.player->camera._pos);
+//    level.player->camera.look_at(Vec3(0,3,0)); // level.player->camera._pos);
+//    level.player->camera.look_at(level.enemy._enemy->camera._pos); // level.player->camera._pos);
+
+//    level.enemy._enemy->camera.look_at(Vec3(0,5,0)); // level.player->camera._pos);
+
+
+    if (rand(1, 10000) > 9900){
+        level.bullets.fire(level.enemy._enemy->camera);
+    }
     // camera navigation
     {
         float moving_speed = tick_time * (this->is_ctrl_pressed?6*2:6);
@@ -157,10 +284,10 @@ void MyAppCallback::on_tick(double tick_time){
         if (this->keys_pressed[SDL_SCANCODE_A]) level.player->camera.stride(-moving_speed);
         if (this->keys_pressed[SDL_SCANCODE_D]) level.player->camera.stride(moving_speed);
 
-        if (this->keys_pressed[SDL_SCANCODE_UP]) level.enemy->camera.go(moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_DOWN]) level.enemy->camera.go(-moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_LEFT]) level.enemy->camera.stride(-moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_RIGHT]) level.enemy->camera.stride(moving_speed);
+//        if (this->keys_pressed[SDL_SCANCODE_UP]) level.enemy->camera.go(moving_speed);
+//        if (this->keys_pressed[SDL_SCANCODE_DOWN]) level.enemy->camera.go(-moving_speed);
+//        if (this->keys_pressed[SDL_SCANCODE_LEFT]) level.enemy->camera.stride(-moving_speed);
+//        if (this->keys_pressed[SDL_SCANCODE_RIGHT]) level.enemy->camera.stride(moving_speed);
 
         if (this->keys_pressed[SDL_SCANCODE_SPACE]){
             if (level.player->_on_ground) {
@@ -169,8 +296,8 @@ void MyAppCallback::on_tick(double tick_time){
             }
         }
 
-        level.nebula->camera.rgOX += 10.0f;
-        level.nebula->camera.rgOY += 10.0f;
+        level.nebula->camera.rgOX += 0.01*tick_time;
+        level.nebula->camera.rgOY += 0.01*tick_time;
 
         //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
 

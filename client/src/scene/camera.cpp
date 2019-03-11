@@ -99,7 +99,29 @@ void Camera::stride(float distance_right) {
     this->_pos = wNewPos;
 }
 
+//#include <math.h>
+void Camera::look_at(const Vec3 &point) {
+    /* The basic formula can be found here: https://en.wikipedia.org/wiki/Spherical_coordinate_system
+     * "Cartessian coordinates":
+     *  this->rgOX = acos(y);
+     *  this->rgOY = atan2(x,z);
+     *  But it doesn't work properly in my case. I need to adjust it a bit:
+     *  this->rgOX = -(acos(y) - M_PI/2);
+     *  this->rgOY = atan2(x,z) - M_PI;
+     *
+     * I didn't have time to investigate, why do I need to add these fixes, but it passed 3 tests:
+     * 1. A player always looks at the enemy.
+     * 2. A player always looks at the origin.
+     * 3. An enemy always looks at the player. Instead of enemy I put XYZ-axes model
+    */
 
+    const Vec3 wDir = (point - this->_pos).normed();
+    const float &x=wDir._x, &y = wDir._y, &z = wDir._z;
+    if (fabs(z) <= epsilon) return;
+    this->rgOX = -(acos(y) - M_PI/2);
+    this->rgOY = atan2(x,z) - M_PI;
+    this->rgOZ = 0;
+}
 
 #ifdef RUN_TESTS
 #include <stdio.h>

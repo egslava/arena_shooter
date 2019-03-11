@@ -37,9 +37,9 @@ public:
 
 class Bullets{
     Scene *_scene;
+public:
     std::vector<Bullet> _bullets;
     int find(SPNode &by);
-public:
     void init(Scene &scene) {
         this->_scene = &scene;
         this->_bullets.reserve(20);
