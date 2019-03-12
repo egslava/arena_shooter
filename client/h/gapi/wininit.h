@@ -17,6 +17,7 @@ struct AppCallback;
 
 
 struct AppCallback{
+    int screen_width, screen_height;
     bool keys_pressed[SDL_NUM_SCANCODES];
     bool is_shift_pressed = false;
     bool is_ctrl_pressed = false;
@@ -35,8 +36,8 @@ struct AppCallback{
 
 class MySDLApp {
     SDL_Window* _window;
-    const int viewport_width = 640*1.5;
-    const int viewport_height = 480*1.5;
+    const int viewport_width = 640*2.5;
+    const int viewport_height = 480*2.0;
 
     SDL_GLContext _gl_context;
 

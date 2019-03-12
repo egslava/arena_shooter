@@ -56,6 +56,7 @@ const char *fragment_shader_code = ""
 //"   FragColor = vec4(1,1,1, 1)*light_cam_bright;\n"
 "    vec4 tex_color = texture(texture0, fragTexCoord);\n"
 "    vec4 out_color = vec4(0.5 * (light_cam_bright*mat_color).rgb + tex_color.rgb, tex_color.w) + ambient_color;\n"
+"    out_color.a *= mat_color.a;\n"
 "    FragColor = out_color;\n"
 
 //// reinhard tone mapping
@@ -69,28 +70,6 @@ const char *fragment_shader_code = ""
 //"    FragColor = texture(texture0, fragTexCoord);\n"
 "}\n";
 
-//"    FragColor = fragColor;\n"
-
-//std::vector<float> _triangle_points {
-//   0.5f, -0.5f,  0.0f,
-//  -0.5f, -0.5f,  0.0f,
-//    0.0f,  0.5f,  0.0f,
-//};
-
-
-//std::vector<float> _triangle_points {
-//    0.0f,    0.0f,  0.0f,
-//    0.0f,  480.f,  0.0f,
-//    640.0f,  480.0f,  0.0f,
-//};
-
-
-
-//std::vector<float> _triangle_colors {
-//   0.0f,  1.0f,  0.0f,
-//   0.0f,  0.0f,  1.0f,
-//   1.0f,  0.0f,  0.0f,
-//};
 
 std::vector<float> _triangle_texcoords = {
     1.0f, 0.0f,  // lower-right corner

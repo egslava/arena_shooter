@@ -46,7 +46,7 @@ struct Node {
         LIGHT = 4,
 
         /** */
-        APPLY_TRANSFORMS = 8,
+        DO_NOT_TRANSFORM = 8,
 
         /** turns off z-buffer and doesn't apply camera matrix transformation */
         SCREENCOORDS = 16,
@@ -106,6 +106,9 @@ struct ElapsedTime {
 };
 
 struct Scene {
+    float _screen_width;
+    float _screen_height;
+
     Scene():ambient_color(0,0,0,0){}
 
     ElapsedTime _elapsed;  // the time between 2 render calls
@@ -113,7 +116,7 @@ struct Scene {
     SPNode _camera;
     Program program;
 
-    void init();
+    void init(int screen_width, int screen_height);
     bool in_frustum(SPNode sp_node){
         return true;
     }

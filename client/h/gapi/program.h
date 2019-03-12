@@ -25,6 +25,7 @@ public:
     void uniform(const char *name, const Mat4x4 &value);
     void set_mat_model(const Mat4x4 &mat);
     void set_mat_camera(const Mat4x4 &mat);
+    void set_mat_projection(const Mat4x4 &mat);
     void set_color(const Vec3 &color);
 
 //    void bind(){

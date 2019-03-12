@@ -55,12 +55,12 @@
 
 Mat4x4 Camera::getMatWorldToCamera() const
 {
-    return this->rotW2C()*Mat4x4::set_translation(-this->_pos);
+    return Mat4x4::set_scale(this->_scale.invdot() ) * this->rotW2C()*Mat4x4::set_translation(-this->_pos);
 }
 
 Mat4x4 Camera::getMatCameraToWorld() const
 {
-    return Mat4x4::set_translation(this->_pos) * this->rotC2W();
+    return Mat4x4::set_translation(this->_pos) * this->rotC2W() * Mat4x4::set_scale(this->_scale);
 }
 
 void Camera::turn_up(float updown) {

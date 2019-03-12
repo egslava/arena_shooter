@@ -177,6 +177,10 @@ public:
         return result;
     }
 
+    Vec3 invdot () const {
+        return Vec3(1/_x, 1/_y, 1/_z, 1/_w);
+    }
+
     static const Vec3 OX, OY, OZ;
 };
 

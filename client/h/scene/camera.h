@@ -33,7 +33,9 @@ class Camera{
     }
 
 public:
+    Camera(): _scale(1,1,1){}
     Vec3 _pos;
+    Vec3 _scale;
     float rgOX=0, rgOY=0, rgOZ=0;  // rotate around global OX and OY
 
     Mat4x4 getMatWorldToCamera() const;

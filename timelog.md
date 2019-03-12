@@ -562,35 +562,7 @@ Commit:
 [+] Телепорт-кристалл сделан. Работает на меня и на противника.
 [+] "Противник" за мной бегает, его можно "убить" - он переродится в случайном месте карты.
 
-11/03/2019
-----------
-Наконец-то работает метод look_at. Было очень проблеммно его сделать. Простой перевод из декартовых координат в сферические не работает, нужен ещё костыль.
-Вот просто пример перевода координат:
-rotX = acos(y)
-rotY = atan2(x,z)
 
-[+] Enemy is running
-[+] Enemy can be killed
-[+] Enemy can walk around imaginary spheres to avoid falling from the flower
-[+] enemy jumps if it has stucked
-[+] Enemy can fire! :)
-[+] Nebula is rotating!
-[x] Changed teleportation: now it jumps straigh on the flower, not higher
-Should be able to be killed
-
-Code:
-[-] Avoid clearing color buffer for now - it's not needed
-[x] Mat4x4::set_rot_z is fixed now
-[+] Camera::look_at
-[+] set_model_mat / set_camera_mat
-[+] Node::Flags::APPLY_TRANSFORMS / Node::Flags::SCREEN_COORDS
-[+] added a world-axes in debug mode and local-axes in debug mode as well
-
-А вот реально работающий код:
-rot_X = -(acos(y) - M_PI/2);
-rot_Y = atan2(x,z) - M_PI;
-
-[+] glClearColor - убрал
 Надо:
 1. Анимация телепорта
 [v] Противник должен смекать, что надо идти к кристаллу. Возможно, если я на платформе или на цветке. Т.е. если высота больше заданной!
@@ -603,6 +575,35 @@ rot_Y = atan2(x,z) - M_PI;
 4. Противник должен уметь "запрыгивать"
 4. Прицел
 5. Много противников. Должны нарастать "волнами"
+
+11/03/2019
+----------
+[+] Enemy is running
+[+] Enemy can be killed
+[+] Enemy can walk around imaginary spheres to avoid falling from the flower
+[+] enemy jumps if it has stucked
+[+] Enemy can fire! :)
+[+] Nebula is rotating!
+[x] Changed teleportation: now it jumps straigh on the flower, not higher
+
+Code:
+[-] Avoid clearing color buffer for now - it's not needed
+[x] Mat4x4::set_rot_z is fixed now
+[+] Camera::look_at
+[+] set_model_mat / set_camera_mat
+[+] Node::Flags::APPLY_TRANSFORMS / Node::Flags::SCREEN_COORDS
+[+] added a world-axes in debug mode and local-axes in debug mode as well
+
+Наконец-то работает метод look_at. Было очень проблеммно его сделать. Простой перевод из декартовых координат в сферические не работает, нужен ещё костыль.
+Вот просто пример перевода координат:
+rotX = acos(y)
+rotY = atan2(x,z)
+
+А вот реально работающий код:
+rot_X = -(acos(y) - M_PI/2);
+rot_Y = atan2(x,z) - M_PI;
+
+Ща буду делать респавн перса.
 
 Credits:
 Графика:

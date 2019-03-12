@@ -18,7 +18,7 @@ struct Level {
     SPNode axes;
 #endif
 
-    void init();
+    void init(int screen_width, int screen_height);
     void on_collision(SPNode &node1, SPNode &node2);
 };
 

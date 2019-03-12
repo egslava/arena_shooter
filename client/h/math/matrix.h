@@ -36,6 +36,7 @@ public:
     static Mat4x4 set_rot_x(float angle);
     static Mat4x4 set_rot_y(float angle);
     static Mat4x4 set_rot_z(float angle);
+    static Mat4x4 set_scale(const Vec3 &vec);
     static Mat4x4 set_scale(float sx, float sy, float sz);
     Mat4x4 T() const noexcept;
     static Mat4x4 set_translation(float tx, float ty, float tz);

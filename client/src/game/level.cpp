@@ -5,8 +5,9 @@ void print_collides(SPNode node1, SPNode node2){
 }
 
 const char * LEVEL_CRYSTAL_TELEPORTER_BOTTOM = "Crystal Teleporter Bottom";
-void Level::init(){
-    scene.init();
+void Level::init(int screen_width, int screen_height){
+    scene.init(screen_width, screen_height);
+
     scene.on_collision = [this](SPNode node1, SPNode node2) { this->on_collision(node1, node2); };
 
     scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex2.pvr")/*, Color(WHITE)*/))});
@@ -37,15 +38,27 @@ void Level::init(){
     scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs3.model", Texture().data("./res/level/textures/stairs_lightmap3.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
+    SPNode riffle ( new Node{"Riffle", Node::Flags::SCREENCOORDS, Node::PhysFlags::GHOST, (Model().load("res/hero/riffle_scope.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/)).color(Vec3(0,0,1,0.2))} );
+    float riffle_size = 0.17;
+    riffle->camera._scale = Vec3(riffle_size, riffle_size, 1);
+//    riffle->visible = false;
+    scene.nodes.emplace_back(riffle);
+//    riffle->camera._pos._z = -0.5;
+//    riffle->camera.rgOY = M_PI;
+//    riffle->camera._scale = Vec3(screen_height, screen_height,screen_height);
 
 #ifndef NDEBUG
     Node *node = new Node{"Axes", Node::Flags::SCREENCOORDS, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/axes.model", Texture().data("./res/debug/axes.pvr")/*, Color(RED/PINK)*/))};
-    node->camera._pos._z = -4;
-    node->camera._pos._x = -2.5;
-    node->camera._pos._y = -2.5;
+//    node->camera._pos._z = -4;
+//    node->camera._pos._x = -2.5;
+//    node->camera._pos._y = -2.5;
+    node->camera._pos._z = -0.9;
+    node->camera._pos._x = -0.9;
+    node->camera._pos._y = -0.9;
+    node->camera._scale = Vec3(0.1, 0.1, 0.1);
     scene.nodes.emplace_back(node);
 
-    Node *node2 = new Node{"Axes", Node::Flags::APPLY_TRANSFORMS, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/axes.model", Texture().data("./res/debug/axes.pvr")/*, Color(RED/PINK)*/))};
+    Node *node2 = new Node{"Axes", Node::Flags::DO_NOT_TRANSFORM, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/axes.model", Texture().data("./res/debug/axes.pvr")/*, Color(RED/PINK)*/))};
     this->axes = shared_ptr<Node>(node2);
     node2->camera._pos._y = 4;
     scene.nodes.emplace_back(axes);
@@ -126,7 +139,7 @@ void MyAppCallback::on_mousewheel(double d){
 }
 
 void MyAppCallback::on_after_init(){
-    level.init();
+    level.init(this->screen_width, this->screen_height);
     level.player->camera.turn_up(0.5 * M_PI);
     level.player->camera.fly(1.001);  // TODO: remove this ducktape
     level.player->camera.turn_up(-1. * M_PI);
@@ -296,8 +309,8 @@ void MyAppCallback::on_tick(double tick_time){
             }
         }
 
-        level.nebula->camera.rgOX += 0.01*tick_time;
-        level.nebula->camera.rgOY += 0.01*tick_time;
+        level.nebula->camera.rgOX += 0.02*tick_time;
+        level.nebula->camera.rgOY += 0.02*tick_time;
 
         //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
 

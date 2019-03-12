@@ -19,7 +19,7 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
     SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-//            SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
+//    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32));
 
@@ -59,6 +59,8 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     _print_sys_info();
     glEnable(GL_DEPTH_TEST);
 
+    callback.screen_width = this->viewport_width;
+    callback.screen_height = this->viewport_height;
     callback.on_after_init();
 }
 

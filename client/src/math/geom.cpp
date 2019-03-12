@@ -330,7 +330,7 @@ void pull_away(const Triangle &tri, float min_distance, Vec3 &pos, bool &collisi
 
     collisions_found = true;
 
-    if (fabsf(normal._y) > fabsf(normal._x) && fabsf(normal._y) > fabsf(normal._z)) {
+    if ((normal._y) > fabsf(normal._x) && (normal._y) > fabsf(normal._z)) {
         on_ground = true;
     }
     // printf("collision: %0.3f, %0.3f, %0.3f.  pos: %0.3f, %0.3f, %0.3f\n",

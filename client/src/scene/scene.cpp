@@ -43,7 +43,9 @@ void somewhat_related_to_collisions2(){
 
 }
 
-void Scene::init(){
+void Scene::init(int screen_width, int screen_height){
+    this->_screen_width = screen_width;
+    this->_screen_height = screen_height;
 
     Shader vertex_shader, fragment_shader;
     vertex_shader.compile(Shader::Type::VERTEX_SHADER, vertex_shader_code);
@@ -240,22 +242,21 @@ void Scene::_move_colliding()
 void Scene::render(){
     this->_elapsed.update();
     //    	program.transform(angleOY, x, y, z, s, s, s);
+    float ratio = this->_screen_width / this->_screen_height;
 
+    glEnable(GL_DEPTH_TEST);
     program.use(_camera->camera, this->ambient_color);
+    program.set_mat_projection( Mat4x4::set_perspective(90.0f / 180.0f * 3.141529, ratio, 0.001f, 900.00f) );
+    program.set_mat_camera( _camera->camera.getMatWorldToCamera() );
     for (const SPNode &node : nodes){
         if (in_frustum(node)){
             if (!node->visible) continue;
+            if ((node->flags & Node::Flags::SCREENCOORDS)!=Node::Flags::NONE)  // later, during second pass
+                continue;
 
             program.set_color(node->model._color);
-            program.set_mat_model(node->camera.getMatCameraToWorld());
-
-            if ((node->flags & Node::Flags::SCREENCOORDS)==Node::Flags::NONE){
-                glEnable(GL_DEPTH_TEST);
-                program.set_mat_camera( _camera->camera.getMatWorldToCamera() );
-            } else {
-                glDisable(GL_DEPTH_TEST);
-                program.set_mat_camera( Mat4x4::I );
-            }
+            bool should_apply_transforms = (node->flags & Node::Flags::DO_NOT_TRANSFORM) == Node::Flags::NONE;
+            program.set_mat_model(should_apply_transforms ? node->camera.getMatCameraToWorld() : Mat4x4::I);
 
             node->model.draw(); // scene.render(node);
 
@@ -272,6 +273,27 @@ void Scene::render(){
 //                _bsphere.draw();
             }
         }
+    }
+
+    glDisable(GL_DEPTH_TEST);
+    program.use(_camera->camera, this->ambient_color);
+    program.set_mat_camera( Mat4x4::I );
+    program.set_mat_projection( Mat4x4::set_ortho(-ratio, ratio, -1, 1, -0.001f, 900.00f));
+    for (const SPNode &node : nodes){
+        if (!node->visible) continue;
+        if ((node->flags & Node::Flags::SCREENCOORDS)==Node::Flags::NONE)  // later, during second pass
+            continue;
+
+        program.set_color(node->model._color);
+        bool should_apply_transforms = (node->flags & Node::Flags::DO_NOT_TRANSFORM) == Node::Flags::NONE;
+        program.set_mat_model(should_apply_transforms ? node->camera.getMatCameraToWorld() : Mat4x4::I);
+
+        node->model.draw(); // scene.render(node);
+
+//        if (node->uses_particles){
+//            node->particles.draw(_camera->camera, this->ambient_color);
+//        }
+        // if (this->_boundings) node->_bsphere.draw();
     }
 
 }

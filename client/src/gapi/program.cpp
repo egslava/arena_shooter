@@ -111,11 +111,12 @@ void Program::use(const Camera &camera, const Vec3 &ambient){
 
 
     Mat4x4 mat_projection = Mat4x4::set_perspective(90.0f / 180.0f * 3.141529, 640.0f/480.0f, 0.001f, 900.00f);
-    GLint loc_mat_projection = glGetUniformLocation(_program, "projection");
-#ifndef NDEBUG
-    if (loc_mat_projection < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
-#endif
-    glUniformMatrix4fv(loc_mat_projection, 1, GL_FALSE, mat_projection.T()._data);
+    set_mat_projection(mat_projection);
+//    GLint loc_mat_projection = glGetUniformLocation(_program, "projection");
+//#ifndef NDEBUG
+//    if (loc_mat_projection < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
+//#endif
+//    glUniformMatrix4fv(loc_mat_projection, 1, GL_FALSE, mat_projection.T()._data);
 
 
 
@@ -162,6 +163,7 @@ void Program::uniform(const char *name, const Mat4x4 &value)
 
 void Program::set_mat_model(const Mat4x4 &mat) { this->uniform("model", mat); }
 void Program::set_mat_camera(const Mat4x4 &mat) { this->uniform("camera", mat); }
+void Program::set_mat_projection(const Mat4x4 &mat) { this->uniform("projection", mat); }
 
 void Program::set_color(const Vec3 &color) {
     GLint loc_mat_color = glGetUniformLocation(_program, "mat_color");

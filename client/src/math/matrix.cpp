@@ -92,6 +92,7 @@ Mat4x4 Mat4x4::set_rot_z(float angle)
     return result;
 }
 
+Mat4x4 Mat4x4::set_scale(const Vec3 &vec){ return Mat4x4::set_scale(vec._x, vec._y, vec._z); }
 Mat4x4 Mat4x4::set_scale(float sx, float sy, float sz){
     float data[16] = {
         sx,              0,             0,                0,
