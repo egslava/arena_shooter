@@ -213,7 +213,7 @@ void Scene::_move_colliding()
             if ( !in(node1->_aabb, node2->_aabb) ) continue;
 //поиск коллизий враг - пуля
             if (node2->uda_group == 1){
-                printf("Checking %s, %s\n", node1->name, node2->name);
+//                printf("Checking %s, %s\n", node1->name, node2->name);
                 fflush(stdout);
             }
 

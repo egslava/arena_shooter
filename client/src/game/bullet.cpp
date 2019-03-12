@@ -6,6 +6,26 @@
 
 void Bullet::init(Scene &scene)
 {
+//    this->fireball_emitter.type = EmitterType::FOUNTAIN;
+//    this->fireball_emitter.min_start_angle = -180.0f / M_PI;
+//    this->fireball_emitter.max_start_angle = 180 / M_PI ;
+//    this->fireball_emitter.min_start_angular_velocity = 3;
+//    this->fireball_emitter.max_start_angular_velocity = 4;
+//    this->fireball_emitter.min_end_angular_velocity = -5;
+//    this->fireball_emitter.max_end_angular_velocity = 5;
+//    this->fireball_emitter.position_range = 0.20 / 4.0f;
+//    this->fireball_emitter.min_start_size = 0 / 4.0f;
+//    this->fireball_emitter.max_start_size = 3 / 4.0f;
+//    this->fireball_emitter.min_end_size = 1.0 / 4.0f;
+//    this->fireball_emitter.max_end_size = 2.0 / 4.0f;
+//    this->fireball_emitter.max_particles = 500;
+//    this->fireball_emitter.max_live_time = 0.7;
+//    this->fireball_emitter.min_live_time = 0.9;
+//    this->fireball_emitter.velocity_range = Ball{Vec3(0, 3 / 4.0f, 0), 2 / 4.0f};
+//    this->fireball_emitter.gravity = Vec3(0, -1, 0);
+//    this->fireball_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+//    this->fireball_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
+
     this->fireball_emitter.type = EmitterType::FOUNTAIN;
     this->fireball_emitter.min_start_angle = -180.0f / M_PI;
     this->fireball_emitter.max_start_angle = 180 / M_PI ;

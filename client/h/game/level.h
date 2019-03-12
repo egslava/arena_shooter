@@ -10,7 +10,7 @@
 struct Level {
     Scene scene;
     SPNode player, nebula;
-    SPNodes enemies;
+    std::vector<Enemy> enemies;
     Bullets bullets;
     Enemy enemy;
 

@@ -75,7 +75,11 @@ void Level::init(int screen_width, int screen_height){
     scene.nodes.emplace_back(player);
     scene._camera = player;
 
-    enemy.init(scene);
+    enemies.resize(10);
+    for (Enemy &enemy : enemies){
+        enemy.init(scene);
+    }
+
     bullets.init(scene);
 //    ene
 
@@ -272,23 +276,25 @@ void MyAppCallback::on_tick(double tick_time){
     level.scene.integrate();
     level.scene.render();
 
-     enemy_follows(tick_time, level.enemy, level.player);
+    for (Enemy &enemy : this->level.enemies){
+        enemy_follows(tick_time, enemy, level.player);
+
+        if (rand(1, 10000) > 9900){
+            enemy._enemy->camera.look_at(level.player->camera._pos);
+            level.bullets.fire(enemy._enemy->camera);
+        }
+    }
 
 #ifndef NDEBUG
      level.axes->camera.rgOX = level.player->camera.rgOX;
      level.axes->camera.rgOY = level.player->camera.rgOY;
 #endif
 //    level.enemy._enemy->camera.
-    level.enemy._enemy->camera.look_at(level.player->camera._pos);
 //    level.player->camera.look_at(Vec3(0,3,0)); // level.player->camera._pos);
 //    level.player->camera.look_at(level.enemy._enemy->camera._pos); // level.player->camera._pos);
 
 //    level.enemy._enemy->camera.look_at(Vec3(0,5,0)); // level.player->camera._pos);
 
-
-    if (rand(1, 10000) > 9900){
-        level.bullets.fire(level.enemy._enemy->camera);
-    }
     // camera navigation
     {
         float moving_speed = tick_time * (this->is_ctrl_pressed?6*2:6);
