@@ -30,27 +30,64 @@ const char *particles_vertex_shader_code =
     "    vec4(-_sp, -_sp, 0, 0), vec4( _sp, -_sp, 0, 0), vec4( _sp,  _sp, 0, 0));\n"
     "\n"
 
+
+//    "const float _angles[6*2] = float[6*2](\n"
+//    "    45, 135, -135, \n"
+//    "    -135, -45, 45,\n"
+
+//    "    135, 45, -45, \n"
+//    "    -45, -135, 135 );\n"
+//    "\n"
+
     "const float _angles[6] = float[6](\n"
     "    45, 135, -135, \n"
-    "    -135, -45, 45 );\n"
-    "\n"
+    "    -135, -45, 45);\n"
+
     "const vec2 _texcoords[6] = vec2[6](\n"
     "    vec2(   1,    1), vec2( 0,  1), vec2( 0,  0), \n"
     "    vec2(   0,    0), vec2( 1,  0), vec2( 1,  1));\n"
     "\n"
     "float angular_velocity = mix(_in_w.y, _in_w.z, normed_time);\n"
-    "float angle = _in_w.x + angular_velocity*normed_time + _angles[gl_VertexID % 6] / 180 * 3.141529;\n"
-    "vec4 rot = vec4(cos(angle), sin(angle), 0, 0);\n"
+
+    "vec4 cam_pos = inverse(camera) * vec4(0,0,0,1);\n"
     "void main() {\n"
-    "    _interpolated_color = mix(_start_color, _end_color, normed_time);\n"
-    "    vec4 pos = vec4(_init_pos + _init_velocity*normed_time, 1)  + vec4( (_gravity*normed_time*normed_time).xyz,0);\n"
+//    "    float size = _start_size;\n"
 //    "    float size = normed_time;//0.5+t*3;\n"
     "    float size = mix(_start_size, _end_size, normed_time);\n"
-//    "    float size = _start_size;\n"
+
+    "    vec4 pos = vec4(_init_pos + _init_velocity*normed_time, 1)  + vec4( (_gravity*normed_time*normed_time).xyz,0);\n"
+
+    "    vec3 screen_size_lb = (projection * ((camera * pos)-vec4(size, size, 0, 0))).xyz;\n"
+    "    vec2 screen_size_tr = (projection * ((camera * pos)+vec4(size, size, 0, 0))).xy;\n"
+    "    float screen_size = length(screen_size_lb.xy - screen_size_tr) / screen_size_lb.z;\n"
+
+    "    _interpolated_color = mix(_start_color, _end_color, normed_time);\n"
+//    "    int discard2 = 1-int((clamp (length(pos-cam_pos) / 25, 0, 1)));\n"
+//    "    int discard2 = 0;\n"
+
+//        screen_size > 2.35 ||
+//        (gl_VertexID % 18 < 12) &&
+//        2 уроня: 1/3, 2/3, 3/3, не: 6/12, 6/18, 6/24 и т.п. (оставлять)
+//
+//
+    "    bool discard3 = ((gl_VertexID % 60 < 54) && (length(pos - cam_pos) < 4.00) && (screen_size > 0.25));\n"  // first level
+    "    bool discard4 = ((gl_VertexID % 60 < 30) && (length(pos - cam_pos) < 8.00) && (screen_size > 0.25));\n"  // first level
+    "    int  discard2 = (discard3 || discard4)?1:0;\n"
+//    "    int discard2 = 1;\n"
+//    "    "
+
+//    "    float angle = _in_w.x + angular_velocity*normed_time + _angles[(gl_VertexID % 6 + discard2*6)] / 180 * 3.141529;\n"
+    "    float angle = _in_w.x + angular_velocity*normed_time + _angles[(gl_VertexID % 6)] / 180 * 3.141529;\n"
+
+    "    vec4 rot = vec4(cos(angle), sin(angle), 0, 0);\n"
+
+//    "    _interpolated_color.a = 0.0; //alpha;\n"
     "    pos = camera * pos;\n"
-    "    pos +=  size * rot;\n" // _shift[gl_VertexID % 6] *
+
+    "    pos +=  size * rot * (discard2>0?0.1:1);\n" // _shift[gl_VertexID % 6] *
     "    pos = projection * pos;\n"
-    "    gl_Position = pos;\n"
+//    "    if ( screen_size < 0.5) pos.x *= -1;\n"
+    "    gl_Position = pos; // * (1-discard2);\n"
     "    _tex_coords = _texcoords[gl_VertexID % 6];\n"
     "}\n"
      ;
@@ -249,6 +286,7 @@ void Particles::init(const Vec3 &pos){
     this->_vao.data( std::move(gpu_vbos) );
     _link_programs();
 
+    this->_pos_cache = pos;
     this->_is_inited = true;
 }
 
@@ -260,6 +298,7 @@ void Particles::reinit(const Vec3 &pos){
 
     this->_uniform_emitter_time = emitter.time();
     update_particles_state(pos, false);
+    this->_pos_cache = pos;
 }
 
 void Particles::explode()
@@ -283,6 +322,7 @@ void Particles::update(const Vec3 &pos, bool is_visible)
         this->_particles_to_vectors();
         this->vectors2vbos();
     }
+    this->_pos_cache = pos;
 }
 
 void Particles::vectors2vbos(){
@@ -306,6 +346,11 @@ void Particles::draw(const Camera &camera, const Vec3 &ambient_color) {
 
     glDepthMask(GL_FALSE);
 //    printf("%d == particles.size()\n", this->particles.size());
-    glDrawArrays(GL_TRIANGLES, 0, (this->particles.size() - this->num_dead) * 2 * 3);
+
+    float d = (camera._pos - this->_pos_cache).len3();
+    float visible_percent = fmin(1, d*d/1);
+    float tri_draw = (this->particles.size() - this->num_dead) * 2 * 3;
+    float tri_skip = 0; // tri_draw * (1-visible_percent);
+    glDrawArrays(GL_TRIANGLES, tri_skip, tri_draw - tri_skip);
     glDepthMask(GL_TRUE);
 }

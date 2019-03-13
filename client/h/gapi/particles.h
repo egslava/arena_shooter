@@ -71,6 +71,8 @@ class Particles {
     int num_dead = 0;  // all particles are active
     bool should_explode = false;  // should explode during this update
     bool _is_inited = false;
+
+    Vec3 _pos_cache;
 public:
     Emitter emitter;
     Texture _tex;

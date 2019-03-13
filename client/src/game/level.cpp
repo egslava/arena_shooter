@@ -13,12 +13,6 @@ void Level::init(int screen_width, int screen_height){
     scene.nodes.emplace_back(new Node{"Ground", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Ground.model", Texture().data("./res/level/textures/Ground Light Tex2.pvr")/*, Color(WHITE)*/))});
     //        scene.nodes.emplace_back(new Nododel().load("res/leNode::Flags::RIGID, e{(Mvel1/Ground.model", Texture().data("./res/level/textures/Ground.pvr")/*, Color(WHITE)*/))});
 
-    nebula = make_shared<Node>();
-    nebula->name = "Nebula";
-    nebula->phys = Node::PhysFlags::GHOST;
-    nebula->flags = Node::Flags::NONE;
-    nebula->model = std::move(Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")));
-    scene.nodes.emplace_back(nebula);
 
 
     scene.nodes.emplace_back(new Node{"Flower", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Flower.model", Texture().data("./res/level/textures/flower_lm.pvr")/*, Color(CYAN)*/).color(Vec3(0.063, 0.041, 0.402).bright_rgb(1)))});
@@ -38,6 +32,14 @@ void Level::init(int screen_width, int screen_height){
     scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs3.model", Texture().data("./res/level/textures/stairs_lightmap3.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Stairs", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/level/Stairs4.model", Texture().data("./res/level/textures/stairs_lightmap4.pvr")/*, Color(RED/PINK)*/))});
     scene.nodes.emplace_back(new Node{"Sphere", Node::Flags::NONE, Node::PhysFlags::COLLIDE_STATIC, (Model().load("res/debug/sphere_r1.model", Texture().data("./res/debug/grid.pvr")/*, Color(RED/PINK)*/))});
+
+    nebula = make_shared<Node>();
+    nebula->name = "Nebula";
+    nebula->phys = Node::PhysFlags::GHOST;
+    nebula->flags = Node::Flags::NONE;
+    nebula->model = std::move(Model().load("res/level/Nebula_Sky.model", Texture().data("./res/level/textures/nebula.pvr")));
+    scene.nodes.emplace_back(nebula);
+
     SPNode riffle ( new Node{"Riffle", Node::Flags::SCREENCOORDS, Node::PhysFlags::GHOST, (Model().load("res/hero/riffle_scope.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/)).color(Vec3(0,0,1,0.2))} );
     float riffle_size = 0.17;
     riffle->camera._scale = Vec3(riffle_size, riffle_size, 1);
@@ -64,6 +66,14 @@ void Level::init(int screen_width, int screen_height){
     scene.nodes.emplace_back(axes);
 #endif
 
+
+    enemies.resize(7);
+    for (Enemy &enemy : enemies){
+        enemy.init(scene);
+    }
+
+    bullets.init(scene);
+//    ene
     player = make_shared<Node>();
     player->name = "Player";
     player->flags = Node::Flags::NONE;
@@ -74,14 +84,6 @@ void Level::init(int screen_width, int screen_height){
 
     scene.nodes.emplace_back(player);
     scene._camera = player;
-
-    enemies.resize(10);
-    for (Enemy &enemy : enemies){
-        enemy.init(scene);
-    }
-
-    bullets.init(scene);
-//    ene
 
 }
 
@@ -149,7 +151,7 @@ void MyAppCallback::on_after_init(){
     level.player->camera.turn_up(-1. * M_PI);
 
     //        player->camera._pos = Vec3(4.22, 3.00, 2.17);
-    level.player->camera._pos = Vec3(3.99, 12.37, 11.91);
+    level.player->camera._pos = Vec3(3.99, /*12.37*/ 16, 11.91);
     level.player->camera.rgOX = -0.69;
     level.player->camera.rgOY =  0.03;
 }
@@ -226,9 +228,8 @@ void enemy_follows(double tick_time, Enemy &enemy, const SPNode &player){
         dir_enemy_to_player += correction;
         dir_enemy_to_player = dir_enemy_to_player.normed();
         enemy_pos += dir_enemy_to_player * enemy_velocity * tick_time;
+
         _last_pos.push_back(enemy_pos);
-
-
         constexpr int max_poses = 60;
         if (_last_pos.size() > max_poses){
             _last_pos.pop_front();

@@ -68,6 +68,32 @@ void Bullet::init(Scene &scene)
 
 
 
+//    this->smoke_emitter.type = EmitterType::EXPLOSION;
+//    this->smoke_emitter.min_start_angle = -180.0f / 180.0f * M_PI;
+//    this->smoke_emitter.max_start_angle =  180.0f / 180.0f * M_PI ;
+//    this->smoke_emitter.min_start_angular_velocity = -20;
+//    this->smoke_emitter.max_start_angular_velocity =  20;
+//    this->smoke_emitter.min_end_angular_velocity = 0;
+//    this->smoke_emitter.max_end_angular_velocity = 0;
+//    this->smoke_emitter.position_range = 1.25;
+//    this->smoke_emitter.min_start_size = 0;
+//    this->smoke_emitter.max_start_size = 2;
+//    this->smoke_emitter.min_end_size = 1.0;
+//    this->smoke_emitter.max_end_size = 2.0;
+////        smoke_emitter.min_end_size = 1.0;
+////        smoke_emitter.max_end_size = 1.0;
+//    this->smoke_emitter.max_particles = 600;
+//    this->smoke_emitter.min_live_time = 1.7;
+//    this->smoke_emitter.max_live_time = 2.4;
+//    this->smoke_emitter.velocity_range = Ball{Vec3(0, 0, 0), 6};
+//    this->smoke_emitter.gravity = Vec3(0, 3.8, 0);
+////        smoke_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
+//    this->smoke_emitter.start_color_range = Ball{Vec3(0.5, 0.5, 0.5, 0.1), 0.00};
+//    this->smoke_emitter.end_color_range = Ball{Vec3(0.0,0.0,0, 0), 0.00};
+
+
+
+
     this->smoke_emitter.type = EmitterType::EXPLOSION;
     this->smoke_emitter.min_start_angle = -180.0f / 180.0f * M_PI;
     this->smoke_emitter.max_start_angle =  180.0f / 180.0f * M_PI ;
@@ -90,7 +116,6 @@ void Bullet::init(Scene &scene)
 //        smoke_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
     this->smoke_emitter.start_color_range = Ball{Vec3(0.5, 0.5, 0.5, 0.1), 0.00};
     this->smoke_emitter.end_color_range = Ball{Vec3(0.0,0.0,0, 0), 0.00};
-
 
 
     SPNode explosion = make_shared<Node>();
@@ -121,14 +146,14 @@ void Bullet::init(Scene &scene)
     this->_node_smoke = make_shared<Node>();
     this->_node_smoke->name = "Smoke";
     this->_node_smoke->flags = Node::Flags::NONE;
-    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
+//    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
     this->_node_smoke->camera._pos = Vec3(-5, 3, 5);
     this->_node_smoke->visible = false;
     this->_node_smoke->particles_init(smoke_emitter, Texture().data("./res/smokeparticle.pvr"));
     scene.nodes.emplace_back(this->_node_smoke);
 
     this->_node_smoke->uda_group = UDA_BULLET;
-    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
+//    this->_node_smoke->phys = Node::PhysFlags::COLLIDE_DYNAMIC;
     this->_node_fireball->uda_group = UDA_BULLET;
 }
 

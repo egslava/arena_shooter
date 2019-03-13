@@ -58,7 +58,7 @@ void Scene::init(int screen_width, int screen_height){
 
 void Scene::integrate()
 {
-    const float n_times = 1;
+    const float n_times = 2;
 
     for (int i = 0; i < n_times; i++){
         this->_undirty_aabb();
