@@ -5,6 +5,7 @@
 
 class Enemy {
 public:
+    bool is_disabled = true;
     std::deque<Vec3> _last_pos;
     SPNode _enemy;
     void init(Scene &scene);

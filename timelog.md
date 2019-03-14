@@ -606,10 +606,11 @@ rot_Y = atan2(x,z) - M_PI;
 
 13/03/2019
 ----------
-[+] Наконец-то пофиксил багу с проваливающимся из-за тормозов инициализации, персонажем в начале игры.
-[v] Делаю геймовер.
-[v] Пули взрываются друг о друга
-[v] Враги создаются на определённом расстоянии от игрока
+[+] Bugfix when everything goes underground because of the slow initialization
+[+] Gameover. Because of the falling down or due to a shot
+[+] Bullets explode when bump into each other
+[+] Enemies respawn on some distance on player
+
 - Надо сделать, чтобы враги отталкивались друг от друга
 
 const float _angles[6*2] = float[6*2](

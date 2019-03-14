@@ -47,6 +47,8 @@ struct Level {
     Scene scene;
     SPNode player, nebula;
     std::vector<Enemy> enemies;
+    int max_enemies = 10, num_enemies  = 2;
+
     Bullets bullets;
     Enemy enemy;
 

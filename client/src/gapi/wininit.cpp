@@ -52,7 +52,7 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
 //    glBlendFunc(GL_ONE, GL_SRC_COLOR);
 //    glBlendColor(1, 1, 1, 1);
 //    glEnable( GL_LINE_SMOOTH );
-    glEnable(GL_MULTISAMPLE);
+//    glEnable(GL_MULTISAMPLE);
 
 
     glViewport(0, 0, viewport_width, viewport_height);

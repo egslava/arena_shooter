@@ -84,10 +84,19 @@ void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
 #endif
 
 
-    enemies.resize(1);
+//    enemies.reserve(1);
+    enemies.resize(this->max_enemies);
+
     for (Enemy &enemy : enemies){
         enemy.init(scene);
+        enemy.is_disabled = true;
+        enemy._enemy->visible = false;
         enemy._enemy->camera._pos._y = 30;
+    }
+    for (int i = 0; i < this->num_enemies; i++){
+        Enemy &enemy = this->enemies[i];
+        enemy._enemy->visible = true;
+        enemy.is_disabled = false;
     }
 
     bullets.init(scene);
@@ -106,6 +115,19 @@ void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
 
     _state_current->on_enter();
 
+}
+
+Vec3 enemy_respawn_pos(const Vec3 &player_pos){
+    bool new_pos_is_ok = false;
+    Vec3 result;
+    while(!new_pos_is_ok){
+        result._x = rand(-20, 20);
+        result._y = rand(2, 10);
+        result._z = rand(-20, 20);
+        new_pos_is_ok = true;
+        new_pos_is_ok = new_pos_is_ok && (result - player_pos).len3() > 10;
+    }
+    return result;
 }
 
 void Level::on_collision(SPNode &node1, SPNode &node2)
@@ -162,13 +184,16 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
         if (! bullets._bullets[idx_bullet]._is_exploded){
             bullets._bullets[idx_bullet]._explode();
 
-            bool new_pos_is_ok = false;
-            while(!new_pos_is_ok){
-                _enemy->camera._pos = Vec3(rand(-20, 20), rand(2, 10), rand(-20, 20));
-                new_pos_is_ok = true;
-                new_pos_is_ok = new_pos_is_ok && (_enemy->camera._pos - this->player->camera._pos).len3() > 10;
+            _enemy->camera._pos = enemy_respawn_pos(player->camera._pos);
 
+            if (this->num_enemies + 1 < this->enemies.size()){
+                this->num_enemies += 1;
+                Enemy &enemy2 = this->enemies[this->num_enemies-1];
+                enemy2.is_disabled = false;
+                enemy2._enemy->visible = true;
+                enemy2._enemy->camera._pos = enemy_respawn_pos(player->camera._pos);
             }
+
         }
         return;
     }
@@ -338,9 +363,12 @@ void MyAppCallback::on_tick(double tick_time){
     level.scene.render();
 
     for (Enemy &enemy : this->level.enemies){
+//        break;
+//        if (!enemy.is_disabled) break;
+
         enemy_follows(tick_time, enemy, level.player);
 
-        if (rand(1, 10000) > 9900){
+        if (rand(1, 10000) > (10000 - 100/(this->level.max_enemies - this->level.num_enemies))){
             enemy._enemy->camera.look_at(level.player->camera._pos);
             level.bullets.fire(enemy._enemy->camera);
         }
