@@ -19,7 +19,6 @@ class Bullet {
     Vec3 _dir;
     Vec3 _pos;
 
-    bool _is_exploded = false;
 
     Emitter fireball_emitter;
     Emitter explosion_emitter;
@@ -27,6 +26,8 @@ class Bullet {
     bool _should_explode();
     friend class Bullets;
 public:
+    bool _is_exploded = false;
+
     void init(Scene &scene);
     void fire(const Camera &from);
     void _explode();

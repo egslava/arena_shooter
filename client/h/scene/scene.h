@@ -98,6 +98,10 @@ struct ElapsedTime {
         return this->_elapsed;
     }
     double _elapsed = 0;
+    void reset(){
+        this->update();
+        this->update();
+    }
     void update(){
         this->_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(_Timer::now() - _time_last_update).count();
         this->_elapsed /= 1000000000.0;

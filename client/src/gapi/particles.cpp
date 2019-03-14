@@ -156,6 +156,7 @@ void Particles::update_particles_state(const Vec3 &position, bool update) {
     Ball position_range{ position, this->emitter.position_range };
 
     if (kill){
+        this->num_to_update = this->particles.size();
         this->num_dead = 0;
         for (Particle &particle : particles)
             reborn(position_range, this->_uniform_emitter_time, this->emitter, particle, random_init_time);

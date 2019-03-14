@@ -5,7 +5,15 @@ void print_collides(SPNode node1, SPNode node2){
 }
 
 const char * LEVEL_CRYSTAL_TELEPORTER_BOTTOM = "Crystal Teleporter Bottom";
-void Level::init(int screen_width, int screen_height){
+Level::Level() :
+    _state_gameover(*this),
+    _state_gameplay(*this),
+    _state_current(&_state_gameplay)
+    {
+}
+
+void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
+    this->_callback = cb;
     scene.init(screen_width, screen_height);
 
     scene.on_collision = [this](SPNode node1, SPNode node2) { this->on_collision(node1, node2); };
@@ -43,8 +51,17 @@ void Level::init(int screen_width, int screen_height){
     SPNode riffle ( new Node{"Riffle", Node::Flags::SCREENCOORDS, Node::PhysFlags::GHOST, (Model().load("res/hero/riffle_scope.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/)).color(Vec3(0,0,1,0.2))} );
     float riffle_size = 0.17;
     riffle->camera._scale = Vec3(riffle_size, riffle_size, 1);
-//    riffle->visible = false;
     scene.nodes.emplace_back(riffle);
+
+    this->gameover_black_overlap = shared_ptr<Node>( new Node{"Game Over Black Overlap", Node::Flags::SCREENCOORDS, Node::PhysFlags::GHOST, (Model().load("res/ui/gameover_black_background.model", Texture().data("./res/colors/black.pvr")/*, Color(RED/PINK)*/)).color(Vec3(1,1,1,1))} );
+    scene.nodes.emplace_back(gameover_black_overlap);
+    this->gameover_black_overlap->visible = false;
+
+    this->gameover = shared_ptr<Node>( new Node{"Game Over", Node::Flags::SCREENCOORDS, Node::PhysFlags::GHOST, (Model().load("res/ui/gameover.model", Texture().data("./res/level/textures/color_white.pvr")/*, Color(RED/PINK)*/)).color(Vec3(1,1,1,1))} );
+    gameover->visible = false;
+//    float riffle_size = 0.17;
+//    riffle->camera._scale = Vec3(riffle_size, riffle_size, 1);
+    scene.nodes.emplace_back(gameover);
 //    riffle->camera._pos._z = -0.5;
 //    riffle->camera.rgOY = M_PI;
 //    riffle->camera._scale = Vec3(screen_height, screen_height,screen_height);
@@ -67,9 +84,10 @@ void Level::init(int screen_width, int screen_height){
 #endif
 
 
-    enemies.resize(7);
+    enemies.resize(1);
     for (Enemy &enemy : enemies){
         enemy.init(scene);
+        enemy._enemy->camera._pos._y = 30;
     }
 
     bullets.init(scene);
@@ -77,13 +95,16 @@ void Level::init(int screen_width, int screen_height){
     player = make_shared<Node>();
     player->name = "Player";
     player->flags = Node::Flags::NONE;
-    player->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::GRAVITY;
+    player->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::GRAVITY | Node::PhysFlags::PULL_AWAY;
 //    player->radius = 0.90 * 1.0f;
     player->radius = 0.90 * 1.0f;
     //        player->camera._pos = Vec3(0, 2, 0);
+    player->uda_group = UDA_PLAYER;
 
     scene.nodes.emplace_back(player);
     scene._camera = player;
+
+    _state_current->on_enter();
 
 }
 
@@ -110,6 +131,19 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
 //        printf("Collision: %s, %s", node1->name, node2->name);
     }
 
+    if ( node1->uda_group == UDA_BULLET && node2->uda_group == UDA_BULLET ){
+        int idx_bullet1 = bullets.find(node1);
+        Bullet &bullet = bullets._bullets[idx_bullet1];
+
+        if (!bullet._is_exploded){
+            bullet._explode();
+            int idx_bullet2 = bullets.find(node2);
+            bullets._bullets[idx_bullet1]._explode();
+        }
+//        bullets._bullets[idx_bullet1]._explode();
+//        bullets._bullets[idx_bullet2]._explode();
+    }
+
     if ( (node1->uda_group == UDA_ENEMY && node2->uda_group == UDA_BULLET )
          ||
          (node1->uda_group == UDA_BULLET && node2->uda_group == UDA_ENEMY )){
@@ -124,11 +158,43 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
         }
 
         int idx_bullet = bullets.find(_bullet);
-        bullets._bullets[idx_bullet]._explode();
 
-        _enemy->camera._pos = Vec3(rand(-20, 20), rand(2, 10), rand(-20, 20));
+        if (! bullets._bullets[idx_bullet]._is_exploded){
+            bullets._bullets[idx_bullet]._explode();
+
+            bool new_pos_is_ok = false;
+            while(!new_pos_is_ok){
+                _enemy->camera._pos = Vec3(rand(-20, 20), rand(2, 10), rand(-20, 20));
+                new_pos_is_ok = true;
+                new_pos_is_ok = new_pos_is_ok && (_enemy->camera._pos - this->player->camera._pos).len3() > 10;
+
+            }
+        }
         return;
     }
+
+    if ( (node1->uda_group == UDA_PLAYER && node2->uda_group == UDA_BULLET )
+         ||
+         (node1->uda_group == UDA_BULLET && node2->uda_group == UDA_PLAYER )){
+//        printf("Collision: %s, %s", node1->name, node2->name);
+
+        SPNode _bullet, _player;
+        if (node1->uda_group == UDA_BULLET){
+            _bullet = node1;
+            _player = node2;
+        } else{
+            _bullet = node2;
+            _player = node1;
+        }
+
+        int idx_bullet = bullets.find(_bullet);
+        if (bullets._bullets[idx_bullet]._is_exploded){
+            this->_change_state(this->_state_gameover);
+        }
+//        _player->camera._pos. = Vec3(rand(-20, 20), rand(2, 10), rand(-20, 20));
+        return;
+    }
+
 
     fflush(stdout);
 
@@ -145,15 +211,7 @@ void MyAppCallback::on_mousewheel(double d){
 }
 
 void MyAppCallback::on_after_init(){
-    level.init(this->screen_width, this->screen_height);
-    level.player->camera.turn_up(0.5 * M_PI);
-    level.player->camera.fly(1.001);  // TODO: remove this ducktape
-    level.player->camera.turn_up(-1. * M_PI);
-
-    //        player->camera._pos = Vec3(4.22, 3.00, 2.17);
-    level.player->camera._pos = Vec3(3.99, /*12.37*/ 16, 11.91);
-    level.player->camera.rgOX = -0.69;
-    level.player->camera.rgOY =  0.03;
+    level.init(this, this->screen_width, this->screen_height);
 }
 
 void MyAppCallback::on_mousedown(){
@@ -268,8 +326,10 @@ void enemy_follows(double tick_time, Enemy &enemy, const SPNode &player){
 //            printf("Char pos: %0.2f, %0.2f, %0.2f\n", pl_pos._x, pl_pos._y, pl_pos._z);
 //        }
     }
-
 }
+
+
+
 
 void MyAppCallback::on_tick(double tick_time){
     level.enemy.on_tick(tick_time);
@@ -297,34 +357,75 @@ void MyAppCallback::on_tick(double tick_time){
 //    level.enemy._enemy->camera.look_at(Vec3(0,5,0)); // level.player->camera._pos);
 
     // camera navigation
-    {
-        float moving_speed = tick_time * (this->is_ctrl_pressed?6*2:6);
-        if (this->keys_pressed[SDL_SCANCODE_W]) level.player->camera.go(moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_S]) level.player->camera.go(-moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_A]) level.player->camera.stride(-moving_speed);
-        if (this->keys_pressed[SDL_SCANCODE_D]) level.player->camera.stride(moving_speed);
+
+    level.nebula->camera.rgOX += 0.02*tick_time;
+    level.nebula->camera.rgOY += 0.02*tick_time;
+    // --- camera navigation
+
+    level._state_current->on_tick(tick_time);
+
+}
+
+_GameOverLevelState::_GameOverLevelState(Level &level): LevelState(level){}
+
+void _GameOverLevelState::on_tick(double tick_time)
+{
+    if (this->level._callback->keys_pressed[SDL_SCANCODE_KP_ENTER]){
+        this->level._change_state(this->level._state_gameplay);
+    }
+}
+
+void _GameOverLevelState::on_enter() {
+    this->level.gameover_black_overlap->visible = true;
+    this->level.gameover->visible = true;
+}
+
+void _GameOverLevelState::on_exit() {
+    this->level.gameover->visible = false;
+    this->level.gameover_black_overlap->visible = false;
+}
+
+_GamePlayLevelState::_GamePlayLevelState(Level &level): LevelState(level){}
+
+void _GamePlayLevelState::on_enter() {
+    this->level.player->camera.turn_up(0.5 * M_PI);
+    this->level.player->camera.fly(1.001);  // TODO: remove this ducktape
+    this->level.player->camera.turn_up(-1. * M_PI);
+
+    this->level.scene._elapsed.reset();  // bugfix: without it, during slow loading, the character immediately goes throw the floor
+    this->level.player->camera._pos = Vec3(3.99, /*12.37*/ 26, 11.91);
+    this->level.player->camera.rgOX = -0.69;
+    this->level.player->camera.rgOY =  0.03;
+
+    this->level.player->g_velocity = 0;
+}
+
+void _GamePlayLevelState::on_exit() {
+}
+
+void _GamePlayLevelState::on_tick(double tick_time) {
+    if (this->level.player->camera._pos._y < -1) {
+        this->level._change_state(this->level._state_gameover);
+    }
+
+    MyAppCallback &cb = *this->level._callback;
+    float moving_speed = tick_time * (cb.is_ctrl_pressed?6*2:6);
+    if (cb.keys_pressed[SDL_SCANCODE_W]) this->level.player->camera.go(moving_speed);
+    if (cb.keys_pressed[SDL_SCANCODE_S]) this->level.player->camera.go(-moving_speed);
+    if (cb.keys_pressed[SDL_SCANCODE_A]) this->level.player->camera.stride(-moving_speed);
+    if (cb.keys_pressed[SDL_SCANCODE_D]) this->level.player->camera.stride(moving_speed);
 
 //        if (this->keys_pressed[SDL_SCANCODE_UP]) level.enemy->camera.go(moving_speed);
 //        if (this->keys_pressed[SDL_SCANCODE_DOWN]) level.enemy->camera.go(-moving_speed);
 //        if (this->keys_pressed[SDL_SCANCODE_LEFT]) level.enemy->camera.stride(-moving_speed);
 //        if (this->keys_pressed[SDL_SCANCODE_RIGHT]) level.enemy->camera.stride(moving_speed);
 
-        if (this->keys_pressed[SDL_SCANCODE_SPACE]){
-            if (level.player->_on_ground) {
-                level.player->g_velocity = 10;
-                level.player->_on_ground = false;
-            }
+    if (cb.keys_pressed[SDL_SCANCODE_SPACE]){
+        if (this->level.player->_on_ground) {
+            this->level.player->g_velocity = 10;
+            this->level.player->_on_ground = false;
         }
-
-        level.nebula->camera.rgOX += 0.02*tick_time;
-        level.nebula->camera.rgOY += 0.02*tick_time;
-
-        //                 printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
-
-        //                res *= camera.getMatWorldToCamera();
-        //                camera._pos += res;
-
     }
-    // --- camera navigation
 
+    // printf("(%0.2f, %0.2f, %0.2f), %0.2f %0.2f\n", level.player->camera._pos._x, level.player->camera._pos._y, level.player->camera._pos._z, level.player->camera.rgOX, level.player->camera.rgOY);
 }

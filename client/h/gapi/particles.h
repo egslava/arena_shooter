@@ -69,6 +69,7 @@ class Particles {
 
     float _uniform_emitter_time;    // time since the Particle system has been created
     int num_dead = 0;  // all particles are active
+    int num_to_update = 0;  // amount of particles, have to be transferred to GPU on this step
     bool should_explode = false;  // should explode during this update
     bool _is_inited = false;
 

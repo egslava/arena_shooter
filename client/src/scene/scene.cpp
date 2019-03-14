@@ -58,7 +58,7 @@ void Scene::init(int screen_width, int screen_height){
 
 void Scene::integrate()
 {
-    const float n_times = 2;
+    const float n_times = 1;
 
     for (int i = 0; i < n_times; i++){
         this->_undirty_aabb();
@@ -212,10 +212,6 @@ void Scene::_move_colliding()
 
             if ( !in(node1->_aabb, node2->_aabb) ) continue;
 //поиск коллизий враг - пуля
-            if (node2->uda_group == 1){
-//                printf("Checking %s, %s\n", node1->name, node2->name);
-                fflush(stdout);
-            }
 
             bool collision_found = false;
 
@@ -228,8 +224,9 @@ void Scene::_move_colliding()
 
             collision_found |= (
                         node1->model._triangles.size() == 0 &&
-                        node2->model._triangles.size() == 0 &&
-                        node1->uses_particles && node2->uses_particles
+                        node2->model._triangles.size() == 0
+//                        &&
+//                        node1->uses_particles && node2->uses_particles
                         );
 
             if (collision_found){

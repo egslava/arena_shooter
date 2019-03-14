@@ -7,6 +7,42 @@
 #include "game/enemy.h"
 
 
+struct Level;
+struct LevelState;
+struct MyAppCallback;
+
+struct _GameOverLevelState;
+struct _GamePlayLevelState;
+
+
+struct LevelState {
+    Level &level;
+    LevelState(Level &level): level(level){}
+    virtual ~LevelState(){}
+
+    virtual void on_enter() = 0;
+    virtual void on_exit() = 0;
+    virtual void on_tick(double tick_time) = 0;
+};
+
+struct _GameOverLevelState : public LevelState {
+    _GameOverLevelState(Level &level);
+    virtual ~_GameOverLevelState(){}
+
+    virtual void on_tick(double tick_time);
+    virtual void on_enter();
+    virtual void on_exit();
+};
+
+
+struct _GamePlayLevelState : public LevelState {
+    _GamePlayLevelState(Level &level);
+    virtual void on_enter();
+    virtual void on_exit();
+    virtual void on_tick(double tick_time);
+};
+
+
 struct Level {
     Scene scene;
     SPNode player, nebula;
@@ -14,12 +50,31 @@ struct Level {
     Bullets bullets;
     Enemy enemy;
 
+    SPNode gameover, gameover_black_overlap;
+
 #ifndef NDEBUG
     SPNode axes;
 #endif
 
-    void init(int screen_width, int screen_height);
+    Level();
+    void init(MyAppCallback *cb, int screen_width, int screen_height);
     void on_collision(SPNode &node1, SPNode &node2);
+
+    LevelState *_state_current = &_state_gameplay;
+private:
+    friend class _GameOverLevelState;
+    friend class _GamePlayLevelState;
+    MyAppCallback *_callback;
+
+    // states
+    _GameOverLevelState _state_gameover;
+    _GamePlayLevelState _state_gameplay;
+    void _change_state(LevelState &state) {
+        _state_current->on_exit();
+        _state_current = &state;
+        _state_current->on_enter();
+    }
+
 };
 
 
