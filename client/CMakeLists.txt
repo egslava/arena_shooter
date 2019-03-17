@@ -241,6 +241,11 @@ if(WIN32)
     # message("Path to GLEW: ${GLEW_DYNLIB_TO}")
 
     # </GLEW>
+
+   	# Thx to: https://stackoverflow.com/a/37994396. 
+   	# It sets up Arena project as a default one in MS VS, instead of ALL_BUILD
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Arena)
+    # /thxto
 endif(WIN32)
 
 if(UNIX)

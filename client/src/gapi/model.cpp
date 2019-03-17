@@ -41,9 +41,9 @@ void Model::_fill_triangles(const MyModel::VBOs &vbos)
 
 void Model::draw()
 {
-	//if (this->_triangles.size() > 0) {  // TODO: probably, this construction can be removed
+	if (this->_triangles.size() > 0) {  // VAO isn't initialized, thus, shoudln't be used
 		this->_tex.bind();
 		this->_vao.bind();
 		glDrawArrays(GL_TRIANGLES, 0, this->_triangles.size() * 3);
-	//}
+	}
 }

@@ -57,6 +57,12 @@ Release
 
 
 
+Running in Microsoft Visual Studio
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Double click on `client\generate_visual_studio_2017_x64.bat` it will generate a Solution and open it automatically. Press 'Run' in MS VS to run the project.
+
+
 
 
 On Ubuntu
