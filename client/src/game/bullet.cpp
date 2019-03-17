@@ -160,12 +160,12 @@ void Bullet::init(Scene &scene)
 double _now(){
     return     ((double)(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count())) / 1e9;
 }
-void Bullet::fire(const Camera &from)
+void Bullet::fire(const Camera &from, int uda_who)
 {
     this->_pos = from._pos;
     this->_dir = Vec3(from.getMatCameraToWorld() * Vec3(0, 0, -1)) - this->_pos;
 
-    this->_pos += this->_dir*2;  // *2 so, the bullet doesn't kill the enemy immediately, when the enemy make a shot
+    this->_pos += this->_dir*1.5;  // *2 so, the bullet doesn't kill the enemy immediately, when the enemy make a shot
 
     this->_start_time = _now();
     this->_last_update_time = this->_start_time;
@@ -180,6 +180,8 @@ void Bullet::fire(const Camera &from)
 
     this->_node_fireball->particles.emitter.type = EmitterType::FOUNTAIN;    // start
     this->_node_fireball->particles.reinit(this->_pos);
+
+    this->_uda_who = uda_who;
 }
 
 void Bullet::_explode()
@@ -242,7 +244,7 @@ int Bullets::find(SPNode &by)
 
 }
 
-void Bullets::fire(const Camera &from)
+void Bullets::fire(const Camera &from, int uda_who)
 {
     /* Calls Bullet::fire ;
      * @brief idx
@@ -267,7 +269,7 @@ void Bullets::fire(const Camera &from)
 
 //    printf("Before fire\n");
 //    fflush(stdout);
-    this->_bullets[idx].fire(from);
+    this->_bullets[idx].fire(from, uda_who);
 
 //    printf("After fire\n");
 //    fflush(stdout);

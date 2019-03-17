@@ -27,9 +27,10 @@ class Bullet {
     friend class Bullets;
 public:
     bool _is_exploded = false;
+    bool _uda_who = -1;
 
     void init(Scene &scene);
-    void fire(const Camera &from);
+    void fire(const Camera &from, int uda_who);
     void _explode();
     void update();
     bool is_dead()const;
@@ -50,7 +51,7 @@ public:
             this->_bullets.push_back(new_one);
         }
     };
-    void fire(const Camera &from);
+    void fire(const Camera &from, int uda_who);
     void update();
     void on_collision(SPNode &node1, SPNode &node2);
 };

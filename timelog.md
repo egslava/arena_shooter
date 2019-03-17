@@ -611,6 +611,15 @@ rot_Y = atan2(x,z) - M_PI;
 [+] Bullets explode when bump into each other
 [+] Enemies respawn on some distance on player
 
+14/03/2019
+----------
+[+] Enemies' bullets do not kill enemies
+[+] Enemies grow more gracefully (50% chance after killing each enemy)
+[+] Bullets appear closer to a shooter
+[+] Exploded bullets (smoke) do not kill anyone
+[+] Enemies are more 'spread' of each other. Thus, they don't form a line / point when they stalk the player.
+[+] One more time: Bugfix when everything goes underground because of the slow initialization
+
 - Надо сделать, чтобы враги отталкивались друг от друга
 
 const float _angles[6*2] = float[6*2](

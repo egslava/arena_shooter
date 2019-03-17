@@ -12,6 +12,21 @@ Level::Level() :
     {
 }
 
+
+Vec3 enemy_respawn_pos(const Vec3 &player_pos){
+    bool new_pos_is_ok = false;
+    Vec3 result;
+    while(!new_pos_is_ok){
+        result._x = rand(-20, 20);
+        result._y = rand(2, 10);
+        result._z = rand(-20, 20);
+        new_pos_is_ok = true;
+        new_pos_is_ok = new_pos_is_ok && (result - player_pos).len3() > 20;
+    }
+    return result;
+}
+
+
 void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
     this->_callback = cb;
     scene.init(screen_width, screen_height);
@@ -83,24 +98,17 @@ void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
     scene.nodes.emplace_back(axes);
 #endif
 
+//    ene
 
-//    enemies.reserve(1);
     enemies.resize(this->max_enemies);
-
-    for (Enemy &enemy : enemies){
-        enemy.init(scene);
-        enemy.is_disabled = true;
-        enemy._enemy->visible = false;
-        enemy._enemy->camera._pos._y = 30;
-    }
-    for (int i = 0; i < this->num_enemies; i++){
-        Enemy &enemy = this->enemies[i];
-        enemy._enemy->visible = true;
+    for (Enemy &enemy : this->enemies){
         enemy.is_disabled = false;
+        enemy.init(this->scene);
+        enemy._enemy->visible = false;
     }
 
     bullets.init(scene);
-//    ene
+
     player = make_shared<Node>();
     player->name = "Player";
     player->flags = Node::Flags::NONE;
@@ -113,21 +121,10 @@ void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
     scene.nodes.emplace_back(player);
     scene._camera = player;
 
+
+
     _state_current->on_enter();
 
-}
-
-Vec3 enemy_respawn_pos(const Vec3 &player_pos){
-    bool new_pos_is_ok = false;
-    Vec3 result;
-    while(!new_pos_is_ok){
-        result._x = rand(-20, 20);
-        result._y = rand(2, 10);
-        result._z = rand(-20, 20);
-        new_pos_is_ok = true;
-        new_pos_is_ok = new_pos_is_ok && (result - player_pos).len3() > 10;
-    }
-    return result;
 }
 
 void Level::on_collision(SPNode &node1, SPNode &node2)
@@ -170,23 +167,25 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
          ||
          (node1->uda_group == UDA_BULLET && node2->uda_group == UDA_ENEMY )){
 //        printf("Collision: %s, %s", node1->name, node2->name);
-        SPNode _bullet, _enemy;
+        SPNode _bullet_node, _enemy_node;
         if (node1->uda_group == UDA_BULLET){
-            _bullet = node1;
-            _enemy = node2;
+            _bullet_node = node1;
+            _enemy_node = node2;
         } else{
-            _bullet = node2;
-            _enemy = node1;
+            _bullet_node = node2;
+            _enemy_node = node1;
         }
 
-        int idx_bullet = bullets.find(_bullet);
+        int idx_bullet = bullets.find(_bullet_node);
 
-        if (! bullets._bullets[idx_bullet]._is_exploded){
-            bullets._bullets[idx_bullet]._explode();
+        Bullet &bullet = bullets._bullets[idx_bullet];
+        if (! bullet._is_exploded && bullet._uda_who != UDA_ENEMY){
+            bullet._explode();
 
-            _enemy->camera._pos = enemy_respawn_pos(player->camera._pos);
+            _enemy_node->camera._pos = enemy_respawn_pos(player->camera._pos);
 
-            if (this->num_enemies + 1 < this->enemies.size()){
+            // adding new enemy with 1/2 chance
+            if (this->num_enemies + 1 < this->enemies.size() && rand(1, 100) > 50){
                 this->num_enemies += 1;
                 Enemy &enemy2 = this->enemies[this->num_enemies-1];
                 enemy2.is_disabled = false;
@@ -240,7 +239,7 @@ void MyAppCallback::on_after_init(){
 }
 
 void MyAppCallback::on_mousedown(){
-    level.bullets.fire(level.player->camera);
+    level.bullets.fire(level.player->camera, UDA_PLAYER);
 }
 
 void MyAppCallback::on_keydown(SDL_Scancode scancode){
@@ -362,16 +361,38 @@ void MyAppCallback::on_tick(double tick_time){
     level.scene.integrate();
     level.scene.render();
 
-    for (Enemy &enemy : this->level.enemies){
+    for (int i = 0; i < this->level.num_enemies; i++){
+        Enemy &enemy = this->level.enemies[i];
+        if (enemy.is_disabled) continue;  // redundant
 //        break;
 //        if (!enemy.is_disabled) break;
 
         enemy_follows(tick_time, enemy, level.player);
 
-        if (rand(1, 10000) > (10000 - 100/(this->level.max_enemies - this->level.num_enemies))){
+        if (rand(1, 10000) > (10000 - 200/(this->level.max_enemies - this->level.num_enemies))){
             enemy._enemy->camera.look_at(level.player->camera._pos);
-            level.bullets.fire(enemy._enemy->camera);
+            level.bullets.fire(enemy._enemy->camera, UDA_ENEMY);
         }
+    }
+
+    for (int i = 0; i < this->level.num_enemies; i++){
+        Enemy &enemy1 = this->level.enemies[i];
+        const Vec3 &pos1 = enemy1._enemy->camera._pos;
+        Vec3 pull_dir(0,0,0,0);
+        for (int j = 0; j < this->level.num_enemies; j++){
+            if (i == j) continue;
+            Enemy &enemy2 = this->level.enemies[j];
+            Vec3 &pos2 = enemy2._enemy->camera._pos;
+
+            Vec3 dir = (pos1-pos2);
+            float d = dir.len3();
+            d *= d;
+            d *= d;
+
+            pull_dir += dir * (1.0f / d) * tick_time * 30;
+        }
+
+        enemy1._enemy->camera._pos += pull_dir;
     }
 
 #ifndef NDEBUG
@@ -420,12 +441,28 @@ void _GamePlayLevelState::on_enter() {
     this->level.player->camera.fly(1.001);  // TODO: remove this ducktape
     this->level.player->camera.turn_up(-1. * M_PI);
 
-    this->level.scene._elapsed.reset();  // bugfix: without it, during slow loading, the character immediately goes throw the floor
     this->level.player->camera._pos = Vec3(3.99, /*12.37*/ 26, 11.91);
     this->level.player->camera.rgOX = -0.69;
     this->level.player->camera.rgOY =  0.03;
 
     this->level.player->g_velocity = 0;
+
+
+//    this->level.max_enemies = 10;
+    this->level.num_enemies = 1;
+    for (Enemy &enemy : this->level.enemies){
+        enemy._enemy->camera._pos = enemy_respawn_pos(this->level.player->camera._pos);
+        enemy.is_disabled = true;
+        enemy._enemy->visible = false;
+        enemy._enemy->camera._pos._y = 30;
+    }
+    for (int i = 0; i < this->level.num_enemies; i++){
+        Enemy &enemy = this->level.enemies[i];
+        enemy._enemy->visible = true;
+        enemy.is_disabled = false;
+    }
+
+    this->level.scene._elapsed.reset();  // bugfix: without it, during slow loading, the character immediately goes throw the floor
 }
 
 void _GamePlayLevelState::on_exit() {
