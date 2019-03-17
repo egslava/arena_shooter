@@ -211,7 +211,7 @@ void Scene::_move_colliding()
 //                continue;
 
             if ( !in(node1->_aabb, node2->_aabb) ) continue;
-//поиск коллизий враг - пуля
+			//поиск коллизий враг - пуля
 
             bool collision_found = false;
 

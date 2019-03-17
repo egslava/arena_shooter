@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 project (Arena)
 
+# thx: https://stackoverflow.com/a/44023223
+set_property(GLOBAL PROPERTY USE_FOLDERS ON) 
+# /thx
+
 set(Arena_VERSION_MAJOR 0)
 set(Arena_VERSION_MINOR 0)
 
@@ -112,6 +116,7 @@ function (add_custom_sources)
 
     # 5. Adding the dependency, so both files (the original and the shadow)
     #    will be updated when the source file is changed
+	source_group(".shadows" FILES ${_no_genex_file})
     target_sources(Arena PUBLIC ${_no_genex_file})
 endfunction()
 
@@ -172,7 +177,7 @@ macro(copy_files_if_different target_suffix to_dir from_regexp)
                 TARGET Arena
                 OUTPUT ${_to_file}
                 DEPENDS ${Arena_CONVERT_OBJ_COMMAND} ${_from_file}
-                COMMAND python3 ${Arena_CONVERT_OBJ_COMMAND} ${_from_file} ${_to_file}
+                COMMAND python ${Arena_CONVERT_OBJ_COMMAND} ${_from_file} ${_to_file}
                 VERBATIM
             )
 #            target_sources(Arena PUBLIC ${_to_file})
@@ -255,6 +260,12 @@ endif(UNIX)
 set(SDL_BUILDING_LIBRARY ON)
 #include (FindSDL)
 find_package(SDL2 REQUIRED)
+
+STRING(LENGTH ${SDL2_INCLUDE_DIRS} SDL2_PATH_LEN)
+MATH(EXPR SDL2_PATH_LEN ${SDL2_PATH_LEN}-5)  # removing "/SDL2" part
+STRING(SUBSTRING ${SDL2_INCLUDE_DIRS} 0 ${SDL2_PATH_LEN} SDL2_INCLUDE_DIRS)
+message("SDL2 include dirs: " ${SDL2_INCLUDE_DIRS})
+
 target_include_directories(Arena PUBLIC ${SDL2_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${SDL2_LIBRARIES})
 # set(EXTRA_LIBS ${EXTRA_LIBS} "GLU")
@@ -283,12 +294,13 @@ target_include_directories(Arena PUBLIC  "${PROJECT_BINARY_DIR}" )
 
 # <thx to: https://stackoverflow.com/a/51008650/1444191> and to Alex Ushanov (@megaxela) from pro.buildtools
 file(GLOB_RECURSE source_files "arena.cpp" "src/*.cpp" )
+source_group("Source Files\\main" FILES "${source_files}")
+target_sources(Arena PUBLIC ${source_files} )
 # </thx to: https://stackoverflow.com/a/51008650/1444191>
 
             # <--this is out-file path
 message("EXTRA_LIBS: ${EXTRA_LIBS}")
 target_include_directories(Arena PUBLIC "./h")
-target_sources(Arena PUBLIC ${source_files} )
 target_link_libraries(Arena ${EXTRA_LIBS})
 
 option (RUN_TESTS "Run all the test when the app starts app. Useful for debugging. " ON)

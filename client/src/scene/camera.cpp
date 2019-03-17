@@ -2,6 +2,11 @@
 #include "Config.h"
 #include <math.h>
 
+#ifndef M_PI
+// strangely, on Windows, I don't have this constant
+#define M_PI 3.14159265358979323846
+#endif
+
 //Mat4x4 Camera::getMat() const
 //{
 //    // https://en.wikipedia.org/wiki/Rotation_matrix general rotations says, that it's ok
@@ -138,7 +143,7 @@ float test_rot_right_up(){
     assert(cam.getMatCameraToWorld()*OX == OZ);
     assert(cam.getMatCameraToWorld()*OY ==-OX);
     assert(cam.getMatCameraToWorld()*OZ ==-OY);
-
+	return 0;
 }
 float test_doesnt_change_axes(){
     Camera cam;  // in 0,0,0
@@ -180,7 +185,7 @@ float test_doesnt_change_axes(){
     assert ((cam.getMatWorldToCamera() * OY).eqXYZ(Vec3(1, 1, 1)));
     assert ((cam.getMatWorldToCamera() * OZ).eqXYZ(Vec3( 2, 0, 1)));
 
-
+	return 0;
 }
 
 float tests(){

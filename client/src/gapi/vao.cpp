@@ -9,6 +9,8 @@ void VAO::_gen(){
 
 void VAO::delete_(){
 #ifndef NDEBUG
+	printf("VAO::delete_\n");
+	fflush(stdout);
     if (_vao == 0){
         throw MyIllegalStateException("Deletion VAO without a call to glGenVertexArrays.");
     }
@@ -29,7 +31,6 @@ VAO &&VAO::data(std::vector<VBO> &&vbos){
 //    _vbos.push_back(std::move(vertex_data));
 //    _vbos.push_back(std::move(normal_data));
 //    _vbos.push_back(std::move(texture_data));
-
     glBindVertexArray(_vao);
 
     int counter = 0;
@@ -38,6 +39,7 @@ VAO &&VAO::data(std::vector<VBO> &&vbos){
 
         vbo.bind();
         glVertexAttribPointer(counter, vbo._floats_per_vertex, GL_FLOAT, GL_FALSE, vbo._floats_per_vertex * sizeof(float), (void*)0);
+		//glVertexAttribPointer(counter, vbo._floats_per_vertex, GL_FLOAT, GL_FALSE, vbo._floats_per_vertex, (void*)0);
 
         //            typedef void (GLAPIENTRY * PFNGLENABLEVERTEXARRAYATTRIBPROC) (GLuint vaobj, GLuint index);
         glEnableVertexAttribArray(counter);
@@ -50,7 +52,10 @@ VAO &&VAO::data(std::vector<VBO> &&vbos){
 
 
 void VAO::bind(){
-    glBindVertexArray(_vao);
+#ifndef NDEBUG
+	if (this->_vao <= 0) throw MyIllegalStateException("You should not bind VAO if it was not initialized");
+#endif
+	glBindVertexArray(_vao);
 }
 
 VAO::~VAO(){

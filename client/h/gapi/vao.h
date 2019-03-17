@@ -27,6 +27,7 @@ public:
         _vao = that._vao;
         _vbos = std::move(that._vbos);
         that._vao = 0;
+		return static_cast<VAO&&>(*this);
     }
 
 

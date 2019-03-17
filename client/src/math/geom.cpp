@@ -755,6 +755,7 @@ bool in(const AABB &aabb1, const AABB &aabb2) {
             test_triangle_closest();
             test_pull_away_tri();
             test_move_collidings();
+			return -1;
         }
         int test_results = tests();
     }

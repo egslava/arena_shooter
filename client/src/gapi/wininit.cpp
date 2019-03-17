@@ -20,7 +20,11 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
 //    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
 //    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1));
-//    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
+#ifdef WIN32
+	// Just a duct tape, since I have a video adapter on my Windows machine
+	// and have an integrated videcard on my Ubuntu laptop
+    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
+#endif
 //    SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8));
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));
     //        SDL_SAFE(SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32));

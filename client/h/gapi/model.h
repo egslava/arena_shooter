@@ -19,6 +19,7 @@ public:
         this->_tex = std::move(that._tex);
         this->_color = that._color;
         this->_triangles = std::move(that._triangles);
+		return static_cast<Model&&>(*this);
     }
 //    {
 //        this->_gl_id = that._gl_id;

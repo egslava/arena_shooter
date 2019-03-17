@@ -7,12 +7,11 @@
 #include <math.h>
 #include <limits.h>
 
-constexpr float epsilon = 1e-6;
+constexpr float epsilon = 1e-6f;
 
 class Mat4x4;
 class Vec3;
 
-class Line;
 struct Line;
 struct Plane;
 

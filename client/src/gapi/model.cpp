@@ -12,6 +12,9 @@ Model&& Model::load(const char *filename, Texture &&tex) {
     std::vector<VBO> gpu_vbos;
     gpu_vbos.push_back( VBO().data(vbos.pos) );
     gpu_vbos.push_back( VBO().data(vbos.nor) );
+
+	if (vbos.tex.size() == 0) vbos.tex.resize(vbos.pos.size());
+
     gpu_vbos.push_back( VBO().data(vbos.tex, 2) );
 
     VAO&& result = this->_vao.data(std::move(gpu_vbos));
@@ -38,7 +41,9 @@ void Model::_fill_triangles(const MyModel::VBOs &vbos)
 
 void Model::draw()
 {
-    this->_tex.bind();
-    this->_vao.bind();
-    glDrawArrays(GL_TRIANGLES, 0, this->_triangles.size() * 3);
+	//if (this->_triangles.size() > 0) {  // TODO: probably, this construction can be removed
+		this->_tex.bind();
+		this->_vao.bind();
+		glDrawArrays(GL_TRIANGLES, 0, this->_triangles.size() * 3);
+	//}
 }

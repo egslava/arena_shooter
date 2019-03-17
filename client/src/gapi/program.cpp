@@ -166,10 +166,11 @@ void Program::set_mat_camera(const Mat4x4 &mat) { this->uniform("camera", mat); 
 void Program::set_mat_projection(const Mat4x4 &mat) { this->uniform("projection", mat); }
 
 void Program::set_color(const Vec3 &color) {
-    GLint loc_mat_color = glGetUniformLocation(_program, "mat_color");
-//#ifndef NDEBUG
-//    if (loc_mat_color < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
-//#endif
+	void *p = __glewGetUniformLocation;
+    GLint loc_mat_color = __glewGetUniformLocation(_program, "mat_color");
+#ifndef NDEBUG
+    if (loc_mat_color < 0) throw MyIllegalStateException("glGetUniformLocation returns -1");
+#endif
 
 
     GLfloat color4f[4];

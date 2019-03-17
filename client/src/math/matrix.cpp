@@ -1,5 +1,10 @@
 #include "math/math.h"
 
+//#define _USE_MATH_DEFINES
+//#include <cmath>
+
+#define M_PI 3.14159265358979323846
+
 const float _dataI[] = {
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -44,6 +49,7 @@ Vec3 operator * (const Mat4x4 &mat, const Vec3& vec4) noexcept {
 
 Mat4x4 &Mat4x4::operator =(const Mat4x4 &mat2) noexcept {
     memcpy(this->_data, mat2._data, sizeof(float) * ROWS * COLS);
+	return *this;
 }
 
 bool Mat4x4::operator ==(const Mat4x4 &another) const
@@ -234,14 +240,17 @@ int test_base_props(){
     assert (rand * Mat4x4::I == rand);
     assert (Mat4x4::O * rand == Mat4x4::O);
     assert (rand * Mat4x4::O == Mat4x4::O);
+	return 0;
 }
 int test_mul_matmat(){
     assert(A*B == AB);
     assert(B*A == BA);
+	return 0;
 }
 int test_mul_matvec(){
     assert(A*a == Aa);
     assert(B*a == Ba);
+	return 0;
 }
 
 int tests(){
