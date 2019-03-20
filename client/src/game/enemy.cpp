@@ -29,7 +29,7 @@ void Enemy::init(Scene &scene){
     _enemy->flags = Node::Flags::NONE;
     _enemy->uda_group = UDA_ENEMY;
     _enemy->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::PULL_AWAY | Node::PhysFlags::GRAVITY | Node::PhysFlags::AABB_ONLY | Node::PhysFlags::AABB_BY_RAD;
-    _enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
+//    _enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
 
     scene.nodes.emplace_back(_enemy);
 }

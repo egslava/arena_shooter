@@ -388,7 +388,7 @@ void MyAppCallback::on_tick(double tick_time){
         }
     }
 
-    for (int i = 0; i < this->level.num_enemies; i++){
+    for (int i = 0; i < this->level.num_enemies; i++ ){
         Enemy &enemy1 = this->level.enemies[i];
         const Vec3 &pos1 = enemy1._enemy->camera._pos;
         Vec3 pull_dir(0,0,0,0);
