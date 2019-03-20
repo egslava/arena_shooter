@@ -37,6 +37,8 @@ struct Node {
 
         PULL_AWAY = 8,
         GRAVITY = 16,
+        AABB_ONLY = 32,
+        AABB_BY_RAD = 64    // do not take into an account mesh. Only radius
 
     };
     enum class Flags : int {

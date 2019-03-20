@@ -53,7 +53,9 @@ VAO &&VAO::data(std::vector<VBO> &&vbos){
 
 void VAO::bind(){
 #ifndef NDEBUG
-	if (this->_vao <= 0) throw MyIllegalStateException("You should not bind VAO if it was not initialized");
+    if (this->_vao <= 0) {
+        throw MyIllegalStateException("You should not bind VAO if it was not initialized");
+    }
 #endif
 	glBindVertexArray(_vao);
 }

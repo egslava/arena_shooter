@@ -20,6 +20,7 @@ void Enemy::init(Scene &scene){
     enemy_emitter.end_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.0), 0.0};
     //        Particles enemy_particles;
     _enemy = make_shared<Node>();
+    _enemy->model.load("./res/enemy/enemy.model", Texture().data("./res/enemy/diffuse.pvr"));
 //    _enemy->model.load("./res/debug/axes.model", Texture().data("./res/debug/axes.pvr"));
     _enemy->camera._pos = Vec3(0, 5, 0);
     _enemy->radius = 0.9;
@@ -27,7 +28,8 @@ void Enemy::init(Scene &scene){
     _enemy->name = "Enemy";
     _enemy->flags = Node::Flags::NONE;
     _enemy->uda_group = UDA_ENEMY;
-    _enemy->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::PULL_AWAY | Node::PhysFlags::GRAVITY;
+    _enemy->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::PULL_AWAY | Node::PhysFlags::GRAVITY | Node::PhysFlags::AABB_ONLY | Node::PhysFlags::AABB_BY_RAD;
     _enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
+
     scene.nodes.emplace_back(_enemy);
 }

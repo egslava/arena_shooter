@@ -111,16 +111,17 @@ void Scene::_undirty_aabb() {
     for (const auto node: this->nodes){
         bool dynamic = (node->phys & Node::PhysFlags::COLLIDE_DYNAMIC) != Node::PhysFlags::PHYS_NONE;
         if (node->is_aabb_dirty > 0 || dynamic){
-            if (node->model._triangles.size() > 0)
-                node->_aabb.set(node->model._triangles);
-            else {
+            bool aabb_by_rad = (node->phys & Node::PhysFlags::AABB_BY_RAD) != Node::PhysFlags::PHYS_NONE;
+            if (node->model._triangles.size() <= 0 || aabb_by_rad) {
                 Ball bsphere;
                 bsphere.C = node->camera._pos;
                 bsphere.R = node->radius;
 
                 node->_aabb.set(bsphere);
+            } else {
+                node->_aabb.set(node->model._triangles);
             }
-            node->is_aabb_dirty -= 1;
+            node->is_aabb_dirty = max(node->is_aabb_dirty-1, 0);
         }
     }
 }
@@ -196,7 +197,7 @@ void Scene::_move_colliding()
 
 
         node1->_on_ground = false;
-
+        bool node1_aabb_only = (node1->phys & Node::PhysFlags::AABB_ONLY) != Node::PhysFlags::PHYS_NONE;
 
         for (const auto &node2 : this->nodes){
             if (node1 == node2)
@@ -211,7 +212,7 @@ void Scene::_move_colliding()
 //                continue;
 
             if ( !in(node1->_aabb, node2->_aabb) ) continue;
-			//поиск коллизий враг - пуля
+            // looking for collisions: enemy <-> bullet
 
             bool collision_found = false;
 
@@ -223,11 +224,16 @@ void Scene::_move_colliding()
             node1->camera._pos = pull_away(node2->model._triangles, node1->camera._pos, node1->radius, collision_found, node1->_on_ground);
 
             collision_found |= (
-                        node1->model._triangles.size() == 0 &&
-                        node2->model._triangles.size() == 0
-//                        &&
-//                        node1->uses_particles && node2->uses_particles
-                        );
+                        (
+                            node1_aabb_only ||
+                            ((node2->phys & Node::PhysFlags::AABB_ONLY) != Node::PhysFlags::PHYS_NONE)
+                        )
+                        ||
+                        (
+                            node1->model._triangles.size() == 0 &&
+                            node2->model._triangles.size() == 0
+                        )
+                    );
 
             if (collision_found){
                 on_collision(node1, node2);

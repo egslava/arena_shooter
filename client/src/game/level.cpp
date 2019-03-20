@@ -309,21 +309,32 @@ void enemy_follows(double tick_time, Enemy &enemy, const SPNode &player){
         }
         dir_enemy_to_player += correction;
         dir_enemy_to_player = dir_enemy_to_player.normed();
-        enemy_pos += dir_enemy_to_player * enemy_velocity * tick_time;
-
+        Vec3 final_direction = dir_enemy_to_player * enemy_velocity * tick_time;
+        enemy_pos += final_direction;
         _last_pos.push_back(enemy_pos);
         constexpr int max_poses = 60;
         if (_last_pos.size() > max_poses){
             _last_pos.pop_front();
         }
 
-        Vec3 mean;
-        for (const auto &vec : _last_pos) mean += vec;
-        mean = mean * (1.0f / static_cast<float>(max_poses));
+        Vec3 mean_pos;
+        for (const auto &vec : _last_pos) mean_pos += vec;
+        mean_pos = mean_pos * (1.0f / static_cast<float>(max_poses));
         float max_deviation = 0;
         for (const auto &vec : _last_pos){
-            max_deviation = max(max_deviation, (vec-mean).len3());
+            max_deviation = max(max_deviation, (vec-mean_pos).len3());
         }
+
+        // using the average to avoid rotation flickering
+//        enemy._enemy->camera.look_at(enemy_pos + final_direction);
+        Vec3 mean_direction = final_direction;
+        int n_max_direction_poses = _last_pos.size();
+        int i_first_direction_pos = fmax(_last_pos.size()-n_max_direction_poses, 1);
+        for (int i = i_first_direction_pos; i < _last_pos.size(); ++i)
+            mean_direction += _last_pos[i] - _last_pos[i_first_direction_pos-1];
+//        mean_direction *= 1.f / _last_pos.size();
+        enemy._enemy->camera.look_at(enemy_pos + mean_direction);
+        // </avg>
 
         if (max_deviation < 10*tick_time && _last_pos.size() >= max_poses && enemy._enemy->_on_ground){
             enemy._enemy->g_velocity = 10;
@@ -364,6 +375,8 @@ void MyAppCallback::on_tick(double tick_time){
     for (int i = 0; i < this->level.num_enemies; i++){
         Enemy &enemy = this->level.enemies[i];
         if (enemy.is_disabled) continue;  // redundant
+
+        printf("enemy pos: (%d, %d, %d)\n", enemy._enemy->camera._pos._x, enemy._enemy->camera._pos._y, enemy._enemy->camera._pos._z);
 //        break;
 //        if (!enemy.is_disabled) break;
 
