@@ -3,6 +3,17 @@
 #include "stdafx.h"
 #include "fpscounter.h"
 
+// In the beginning, they had been members of MySDLApp class, but, then, I got tired of
+// the compilation speed and decided to move them outside of wininit.h
+
+//    const int viewport_width = 640*2.5;
+//    const int viewport_height = 480*2.5;
+//const int viewport_width = 640*3.0;
+//const int viewport_height = 480*2.0;
+
+const int viewport_width = 640 * 1.5;
+const int viewport_height = 480 * 1.5;
+
 MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
 
     for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
@@ -65,8 +76,8 @@ MySDLApp::MySDLApp(AppCallback &callback) : callback(callback) {
     _print_sys_info();
     glEnable(GL_DEPTH_TEST);
 
-    callback.screen_width = this->viewport_width;
-    callback.screen_height = this->viewport_height;
+    callback.screen_width = viewport_width;
+    callback.screen_height = viewport_height;
     callback.on_after_init();
 }
 
@@ -85,8 +96,8 @@ void MySDLApp::loop(){
 
         fps_counter.begin();
 
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_DEPTH_BUFFER_BIT);
 
         callback.on_tick(tick_time);
 

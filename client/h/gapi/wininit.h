@@ -36,14 +36,6 @@ struct AppCallback{
 
 class MySDLApp {
     SDL_Window* _window;
-//    const int viewport_width = 640*2.5;
-//    const int viewport_height = 480*2.5;
-//    const int viewport_width = 640*3.0;
-//    const int viewport_height = 480*2.0;
-
-    const int viewport_width = 640*1.5;
-    const int viewport_height = 480*1.5;
-
     SDL_GLContext _gl_context;
 
     void _print_sys_info(){

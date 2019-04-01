@@ -639,6 +639,17 @@ const float _angles[6*2] = float[6*2](
 
 Ща буду делать респавн перса.
 
+04/01/2019
+----------
+
+[v] Better compilation speed (moved screen_width & screen_height outside of a header file)
+1. enemy bug A: new enemies do not appear
+1. enemy bug B: enemies do not have a model
+2. press any key
+
+
+
+
 Credits:
 Графика:
 # @mrshoor - Alexander Busarov - подсказал мне, почему у меня была перевёрнутая модель в Blender'е, а так же рассказал, что в вершинном шейдере выходная xyzw, z записывает в z-buffer, поэтому у меня z-buffer работал, но отрисовывалась модель неправильно (нужна матрица проекции).
@@ -650,63 +661,3 @@ CMake:
 @megaxela - Alex Ushanov. Подсказал, как добавить поддиректории в res.
 @DenisKormalev объяснил, что target_sources - это не только .cpp-файлы, а, вообще все зависимости проекта. А давать ли их на вход компилятору или нет - это уже решает CMake, в засимости от используемого языка программирования (должно настраиваться).
 
--1
-
-
-
-//    this->rgOX = acos(x);
-//    this->rgOY = acos(y);
-//    this->rgOX = acos(x);
-//    this->rgOY = acos(z);
-//    this->rgOX = acos(y);
-//    this->rgOY = acos(x);
-//    this->rgOX = acos(y);
-//    this->rgOY = acos(z);
-//    this->rgOX = acos(z);  ?
-//    this->rgOY = acos(x);  ?
-//    this->rgOX = acos(z);
-//    this->rgOY = acos(y);
-
-
-//    this->rgOX = acos(-x);
-//    this->rgOY = acos(-y);
-//    this->rgOX = acos(-x);
-//    this->rgOY = acos(-z);
-//    this->rgOX = acos(-y);
-//    this->rgOY = acos(-x);
-//    this->rgOX = acos(-y);
-//    this->rgOY = acos(-z);
-//    this->rgOX = acos(-z);
-//    this->rgOY = acos(-x);
-//    this->rgOX = acos(-z);
-//    this->rgOY = acos(-y);
-
-
-//    this->rgOX = -acos(x); ?
-//    this->rgOY = -acos(y); ?
-//    this->rgOX = -acos(x); ?
-//    this->rgOY = -acos(z); ?
-//    this->rgOX = -acos(y);
-//    this->rgOY = -acos(x);
-//    this->rgOX = -acos(y);
-//    this->rgOY = -acos(z);
-//    this->rgOX = -acos(z);
-//    this->rgOY = -acos(x);
-//    this->rgOX = -acos(z);
-//    this->rgOY = -acos(y);
-
-
-//    this->rgOX = -acos(-x);
-//    this->rgOY = -acos(-y);
-//    this->rgOX = -acos(-x);
-//    this->rgOY = -acos(-z);
-//    this->rgOX = -acos(-y);
-//    this->rgOY = -acos(-x);
-//    this->rgOX = -acos(-y);  ?
-//    this->rgOY = -acos(-z);  ?
-//    this->rgOX = -acos(-z);
-//    this->rgOY = -acos(-x);
-
-x->z
-y->x
-z->y

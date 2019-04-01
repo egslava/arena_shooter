@@ -35,7 +35,7 @@ public:
     Model&& color(const Vec3 color);
     Model&& load(const char *filename, Texture &&Texture);
     void _fill_triangles(const MyModel::VBOs &vbos);
-    void draw();
+    void draw(bool break2=false);
 };
 
 #endif // MODEL_H

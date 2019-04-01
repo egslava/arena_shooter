@@ -14,7 +14,7 @@ void Enemy::init(Scene &scene){
     enemy_emitter.min_live_time = 0.3;
     enemy_emitter.max_live_time = 0.7;
 //    enemy_emitter.max_live_time = 2.1;
-    enemy_emitter.velocity_range = Ball{Vec3(0, 0, 0), 0.1};
+    enemy_emitter.velocity_range = Ball{Vec3(0.f, 0.f, 0.f), 0.1f};
     enemy_emitter.position_range = 0.05;
     enemy_emitter.start_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.9), 0.0};
     enemy_emitter.end_color_range = Ball{Vec3(0.2, 0.6,1.0, 0.0), 0.0};
@@ -29,7 +29,7 @@ void Enemy::init(Scene &scene){
     _enemy->flags = Node::Flags::NONE;
     _enemy->uda_group = UDA_ENEMY;
     _enemy->phys = Node::PhysFlags::COLLIDE_DYNAMIC | Node::PhysFlags::PULL_AWAY | Node::PhysFlags::GRAVITY | Node::PhysFlags::AABB_ONLY | Node::PhysFlags::AABB_BY_RAD;
-//    _enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
+    _enemy->particles_init(enemy_emitter, Texture().data("./res/snowflake.pvr"));
 
     scene.nodes.emplace_back(_enemy);
 }

@@ -180,6 +180,9 @@ void Scene::_move_colliding()
     Ball bsphere;
 
     for (const auto &node1 : this->nodes){
+	//for (int i = 0; i < this->nodes.size(); i++) {
+		//const auto &node1 = this->nodes[i];
+
         if (node1->phys == Node::PhysFlags::GHOST )
             continue;
         if (node1->phys == Node::PhysFlags::COLLIDE_STATIC)
@@ -261,7 +264,7 @@ void Scene::render(){
             bool should_apply_transforms = (node->flags & Node::Flags::DO_NOT_TRANSFORM) == Node::Flags::NONE;
             program.set_mat_model(should_apply_transforms ? node->camera.getMatCameraToWorld() : Mat4x4::I);
 
-            node->model.draw(); // scene.render(node);
+            node->model.draw(node->uda_group == 2); // scene.render(node);
 
             if (node->uses_particles){
 //                glEnable(GL_BLEND);

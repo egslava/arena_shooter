@@ -102,8 +102,8 @@ void Level::init(MyAppCallback *cb, int screen_width, int screen_height){
 
     enemies.resize(this->max_enemies);
     for (Enemy &enemy : this->enemies){
-        enemy.is_disabled = false;
         enemy.init(this->scene);
+        enemy.is_disabled = true;
         enemy._enemy->visible = false;
     }
 
@@ -179,19 +179,25 @@ void Level::on_collision(SPNode &node1, SPNode &node2)
         int idx_bullet = bullets.find(_bullet_node);
 
         Bullet &bullet = bullets._bullets[idx_bullet];
-        if (! bullet._is_exploded && bullet._uda_who != UDA_ENEMY){
+        if ( (! bullet._is_exploded) && (bullet._uda_who != UDA_ENEMY) ){
             bullet._explode();
 
             _enemy_node->camera._pos = enemy_respawn_pos(player->camera._pos);
 
             // adding new enemy with 1/2 chance
-            if (this->num_enemies + 1 < this->enemies.size() && rand(1, 100) > 50){
-                this->num_enemies += 1;
+            //if (this->num_enemies + 1 < this->enemies.size() && rand(1, 100) > 50){
+                this->num_enemies = min(this->num_enemies + 1, this->max_enemies);
                 Enemy &enemy2 = this->enemies[this->num_enemies-1];
+				enemy2.init(this->scene);
                 enemy2.is_disabled = false;
                 enemy2._enemy->visible = true;
                 enemy2._enemy->camera._pos = enemy_respawn_pos(player->camera._pos);
-            }
+
+				/*enemy.is_disabled = false;
+				enemy._enemy->visible = true;
+				this->level.num_enemies = this->level.max_enemies - 1;*/
+				//enemy.
+            //}
 
         }
         return;
@@ -367,6 +373,11 @@ void enemy_follows(double tick_time, Enemy &enemy, const SPNode &player){
 
 
 void MyAppCallback::on_tick(double tick_time){
+	if (tick_time > 1.0)  // for debugging
+	{
+		level.scene._elapsed.update();
+		return;
+	}
     level.enemy.on_tick(tick_time);
     level.bullets.update();
     level.scene.integrate();
@@ -374,9 +385,15 @@ void MyAppCallback::on_tick(double tick_time){
 
     for (int i = 0; i < this->level.num_enemies; i++){
         Enemy &enemy = this->level.enemies[i];
+
+		if (enemy._enemy->camera._pos._y  <= -1)
+		{
+			enemy._enemy->camera._pos._y = 10;
+		}
+
         if (enemy.is_disabled) continue;  // redundant
 
-        printf("enemy pos: (%d, %d, %d)\n", enemy._enemy->camera._pos._x, enemy._enemy->camera._pos._y, enemy._enemy->camera._pos._z);
+        //printf("enemy pos: (%d, %d, %d)\n", enemy._enemy->camera._pos._x, enemy._enemy->camera._pos._y, enemy._enemy->camera._pos._z);
 //        break;
 //        if (!enemy.is_disabled) break;
 
@@ -388,6 +405,7 @@ void MyAppCallback::on_tick(double tick_time){
         }
     }
 
+	// enemies pull out of each other
     for (int i = 0; i < this->level.num_enemies; i++ ){
         Enemy &enemy1 = this->level.enemies[i];
         const Vec3 &pos1 = enemy1._enemy->camera._pos;

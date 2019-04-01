@@ -43,8 +43,8 @@ void Bullet::init(Scene &scene)
     this->fireball_emitter.min_live_time = 0.9;
     this->fireball_emitter.velocity_range = Ball{Vec3(0, 3 / 4.0f, 0), 2 / 4.0f};
     this->fireball_emitter.gravity = Vec3(0, -1, 0);
-    this->fireball_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
-    this->fireball_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
+    this->fireball_emitter.start_color_range = Ball{Vec3(1.f, 1.f, 0.658f, 1.0f), 0.05f};
+    this->fireball_emitter.end_color_range = Ball{Vec3(1.f,0.f,0.f, 0.f), 0.05f};
 
     this->explosion_emitter.type = EmitterType::EXPLOSION;
     this->explosion_emitter.min_start_angle = -180.0f / M_PI;
@@ -63,8 +63,8 @@ void Bullet::init(Scene &scene)
     this->explosion_emitter.min_live_time = 0.9;
     this->explosion_emitter.velocity_range = Ball{Vec3(0, 3, 0), 2};
     this->explosion_emitter.gravity = Vec3(0, -1, 0);
-    this->explosion_emitter.start_color_range = Ball{Vec3(1, 1, 0.658, 1.0), 0.05};
-    this->explosion_emitter.end_color_range = Ball{Vec3(1,0,0, 0), 0.05};
+    this->explosion_emitter.start_color_range = Ball{Vec3(1.f, 1.f, 0.658f, 1.0f), 0.05f};
+    this->explosion_emitter.end_color_range = Ball{Vec3(1.f, 0.f, 0.f, 0.f), 0.05f};
 
 
 

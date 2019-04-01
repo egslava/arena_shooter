@@ -352,6 +352,14 @@ void Particles::draw(const Camera &camera, const Vec3 &ambient_color) {
     float visible_percent = fmin(1, d*d/1);
     float tri_draw = (this->particles.size() - this->num_dead) * 2 * 3;
     float tri_skip = 0; // tri_draw * (1-visible_percent);
+
+#ifndef NDEBUG:
+	if (tri_draw - tri_skip <= 0)
+	{
+		printf("Attention: tri_draw - tri_skip <= 0\n");
+	}
+#endif
+
     glDrawArrays(GL_TRIANGLES, tri_skip, tri_draw - tri_skip);
     glDepthMask(GL_TRUE);
 }
